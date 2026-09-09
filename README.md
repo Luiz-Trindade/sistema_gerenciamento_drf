@@ -13,6 +13,13 @@ O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend 
 
 ---
 
+## 📦 Módulos do Sistema
+
+- **Usuários:** Gestão customizada de usuários e permissões de acesso.
+- **Estoque:** Cadastro de Produtos e registro de Movimentações (Entrada/Saída), com cálculo dinâmico e automático do saldo de estoque.
+
+---
+
 ## 🛠️ Tecnologias Utilizadas
 
 ### Backend (API)
@@ -22,7 +29,7 @@ O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend 
 - **Autenticação:** JWT (SimpleJWT)
 - **Documentação:** OpenAPI 3 (drf-spectacular / Swagger / ReDoc)
 - **Banco de Dados:** PostgreSQL (via Docker)
-- **Admin:** Django Admin customizado com Jazzmin
+- **Admin:** Django Admin customizado com Unfold (Tailwind CSS)
 
 ### Frontend (SPA)
 
@@ -54,43 +61,38 @@ O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend 
 
 2. **Crie e ative o ambiente virtual:**
 
-```bash
-python -m venv .venv
-# Linux / macOS
-source .venv/bin/activate
-# Windows
-.venv\Scripts\activate
-
-```
+    ```bash
+    python -m venv .venv
+    # Linux / macOS
+    source .venv/bin/activate
+    # Windows
+    .venv\Scripts\activate
+    ```
 
 3. **Instale as dependências:**
 
-```bash
-pip install -r requirements.txt
-
-```
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 4. **Inicie os serviços do Docker (Banco de Dados):**
 
-```bash
-docker compose up -d db
-
-```
+    ```bash
+    docker compose up -d db
+    ```
 
 5. **Execute as migrações e crie o superusuário:**
 
-```bash
-python manage.py migrate
-python manage.py createsuperuser
-
-```
+    ```bash
+    python manage.py migrate
+    python manage.py createsuperuser
+    ```
 
 6. **Inicie o servidor de desenvolvimento:**
 
-```bash
-python manage.py runserver
-
-```
+    ```bash
+    python manage.py runserver
+    ```
 
 ---
 
