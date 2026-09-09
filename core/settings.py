@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "usuarios",
+    "estoque",
 ]
 
 MIDDLEWARE = [
@@ -165,6 +166,8 @@ JAZZMIN_SETTINGS = {
         # Ícones para os seus apps e models
         "usuarios": "fas fa-address-card",  # Ícone do app 'usuarios'
         "usuarios.Usuario": "fas fa-user",  # Ícone do model 'Usuario'
+        "estoque.Produto": "fas fa-box",  # Ícone do model 'Produto'
+        "estoque.Movimentacao": "fas fa-exchange-alt",  # Ícone do model 'Movimentacao'
     },
     # (Opcional) Permite recolher o menu lateral em telas grandes
     "show_sidebar": True,
