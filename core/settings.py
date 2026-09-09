@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +33,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "jazzmin",
+    "unfold",  # <-- DEVE VIR ANTES DO ADMIN PADRÃO
+    "unfold.contrib.filters",  # (opcional) Filtros com visual melhorado
+    "unfold.contrib.forms",  # (opcional) Formulários mais bonitos
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -149,33 +153,50 @@ SPECTACULAR_SETTINGS = {
     "SCHEMA_PATH_PREFIX": r"/api/",
 }
 
-JAZZMIN_SETTINGS = {
-    # Título da janela
-    "site_title": "Admin do Sistema",
-    # Título da página de login
-    "site_header": "Sistema de Gerenciamento",
-    # Nome no menu lateral
-    "site_brand": "Administração",
-    # Texto de boas-vindas na tela de login
-    "welcome_sign": "Bem-vindo ao Painel Administrativo",
-    # Ícones para os apps e models específicos
-    "icons": {
-        # Ícones para os apps base do Django
-        "auth": "fas fa-users-cog",
-        "auth.Group": "fas fa-users",
-        # Ícones para os seus apps e models
-        "usuarios": "fas fa-address-card",  # Ícone do app 'usuarios'
-        "usuarios.Usuario": "fas fa-user",  # Ícone do model 'Usuario'
-        "estoque.Produto": "fas fa-box",  # Ícone do model 'Produto'
-        "estoque.Movimentacao": "fas fa-exchange-alt",  # Ícone do model 'Movimentacao'
+UNFOLD = {
+    "SIDEBAR": {
+        "show_search": True,  # Habilita a barra de pesquisa na sidebar
+        "show_all_applications": True,  # Mantém o dropdown com todos os apps no topo
+        "show_nav_links": False,  # Esconde o menu automático sem ícones para não duplicar
+        "navigation": [
+            {
+                "title": _("Autenticação e Autorização"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Grupos"),
+                        "icon": "groups",  # Ícone do Material Symbols
+                        "link": reverse_lazy("admin:auth_group_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Estoque"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Movimentações"),
+                        "icon": "sync_alt",
+                        "link": reverse_lazy("admin:estoque_movimentacao_changelist"),
+                    },
+                    {
+                        "title": _("Produtos"),
+                        "icon": "inventory_2",
+                        "link": reverse_lazy("admin:estoque_produto_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Usuarios"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Usuários"),
+                        "icon": "manage_accounts",
+                        "link": reverse_lazy("admin:usuarios_usuario_changelist"),
+                    },
+                ],
+            },
+        ],
     },
-    # (Opcional) Permite recolher o menu lateral em telas grandes
-    "show_sidebar": True,
-    # (Opcional) Expande menus automaticamente se tiverem submenus
-    "navigation_expanded": True,
 }
-
-# JAZZMIN_UI_TWEAKS = {
-#     "theme": "flatly",
-#     "dark_mode_theme": "darkly",
-# }

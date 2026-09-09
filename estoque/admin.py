@@ -1,8 +1,10 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
+
 from .models import Movimentacao, Produto
 
 
-class MovimentacaoInline(admin.TabularInline):
+class MovimentacaoInline(TabularInline):
     model = Movimentacao
     extra = 0
     readonly_fields = ("criado_em",)
@@ -10,7 +12,7 @@ class MovimentacaoInline(admin.TabularInline):
 
 
 @admin.register(Produto)
-class ProdutoAdmin(admin.ModelAdmin):
+class ProdutoAdmin(ModelAdmin):
     list_display = (
         "nome",
         "preco",
@@ -29,7 +31,7 @@ class ProdutoAdmin(admin.ModelAdmin):
 
 
 @admin.register(Movimentacao)
-class MovimentacaoAdmin(admin.ModelAdmin):
+class MovimentacaoAdmin(ModelAdmin):
     list_display = ("produto", "tipo", "quantidade", "criado_em")
     list_filter = ("tipo", "criado_em")
     search_fields = ("produto__nome", "observacao")

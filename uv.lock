@@ -47,6 +47,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-unfold"
+version = "0.105.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1b/b6/72c412b2a296a3d7a283d5cff80a2b2b539dd621434da0d0e67f9df4add3/django_unfold-0.105.0.tar.gz", hash = "sha256:0051c43185bc54807d522fad50663a5b1332ae0e54ebe490b1f6c879cc6962db", size = 1112124, upload-time = "2026-09-04T08:51:42.019Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/c2/72eccd0adacdca28a6dbd54b7092c8cd29b71ef881fc293e49ee57276fd9/django_unfold-0.105.0-py3-none-any.whl", hash = "sha256:b72880caa376bdc893c2e256dd990812c0301f269e0b977a6b9b4342c6606477", size = 1237302, upload-time = "2026-09-04T08:51:40.558Z" },
+]
+
+[[package]]
 name = "djangorestframework"
 version = "3.18.1"
 source = { registry = "https://pypi.org/simple" }
@@ -270,6 +282,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "django-jazzmin" },
+    { name = "django-unfold" },
     { name = "djangorestframework" },
     { name = "djangorestframework-simplejwt" },
     { name = "drf-spectacular" },
@@ -278,6 +291,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "django-jazzmin", specifier = ">=3.0.5" },
+    { name = "django-unfold", specifier = ">=0.105.0" },
     { name = "djangorestframework", specifier = ">=3.18.1" },
     { name = "djangorestframework-simplejwt", specifier = ">=5.5.1" },
     { name = "drf-spectacular", specifier = ">=0.30.0" },
