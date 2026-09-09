@@ -1,0 +1,62 @@
+# =========================
+# Controle de Versão e Docker
+# =========================
+.git/
+.gitignore
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# =========================
+# Python e Ambientes Virtuais
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.venv/
+venv/
+env/
+.env_folder/
+ENV/
+
+# =========================
+# Django, Mídia e Banco de Dados Local
+# =========================
+db.sqlite3
+db.sqlite3-journal
+media/
+# staticfiles/ (se você roda collectstatic dentro do docker, não envie os locais)
+
+# Volumes locais mapeados no root do projeto (evita copiar pasta de DB inteira pro contêiner do Django)
+pgdata/
+postgres_data/
+db_data/
+
+# =========================
+# Variáveis de Ambiente e Segredos
+# =========================
+# Se você injeta via docker-compose, não precisa copiar o arquivo de ambiente para dentro da imagem
+.env
+*.env
+.env.local
+
+# =========================
+# Logs, Testes e Build
+# =========================
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+build/
+dist/
+*.egg-info/
+
+# =========================
+# IDEs e Sistema Operacional
+# =========================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

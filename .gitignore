@@ -1,0 +1,116 @@
+# =========================
+# Python / Django
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+# Django Specific
+# =========================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+# Pasta de mídia (uploads de usuários) não deve ir para o Git
+media/
+
+# =========================
+# Ambientes Virtuais (Virtualenvs)
+# =========================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# =========================
+# Variáveis de Ambiente e Segredos
+# =========================
+.env.local
+.env.*.local
+*.env
+
+# =========================
+# IDEs e Editores
+# =========================
+.vscode/
+*.code-workspace
+.idea/
+*.iws
+*.iml
+*.ipr
+.fleet/
+.spyderproject
+.ropeproject
+
+# =========================
+# Sistema Operacional
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.cab
+*.msi
+*.msm
+*.msp
+$RECYCLE.BIN/
+
+# =========================
+# Ferramentas de Teste e Cobertura
+# =========================
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# =========================
+# Docker, PostgreSQL e Volumes
+# =========================
+# Ignora overrides locais do docker-compose
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Ignora pastas comumente mapeadas como volumes de banco de dados
+/pgdata/
+/postgres_data/
+/db_data/
+/data/db/
+/mysql_data/
+
+# Dumps e backups de banco de dados
+*.sql
+*.sql.gz
+*.dump
+*.bak
