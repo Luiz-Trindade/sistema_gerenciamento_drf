@@ -19,6 +19,7 @@ venv/
 env/
 .env_folder/
 ENV/
+.cache/
 
 # =========================
 # Django, Mídia e Banco de Dados Local

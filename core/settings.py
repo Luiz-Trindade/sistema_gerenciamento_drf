@@ -33,9 +33,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "unfold",  # <-- DEVE VIR ANTES DO ADMIN PADRÃO
-    "unfold.contrib.filters",  # (opcional) Filtros com visual melhorado
-    "unfold.contrib.forms",  # (opcional) Formulários mais bonitos
+    "unfold",
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "drf_spectacular",
+    "cachalot",
     "usuarios",
     "estoque",
 ]
@@ -149,15 +150,30 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Documentação da API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    # Adicione esta linha: Remove o /api/ da consideração de agrupamento
     "SCHEMA_PATH_PREFIX": r"/api/",
 }
 
 UNFOLD = {
+    "COLORS": {
+        "primary": {
+            "50": "#eff6ff",
+            "100": "#dbeafe",
+            "200": "#bfdbfe",
+            "300": "#93c5fd",
+            "400": "#60a5fa",
+            "500": "#3b82f6",
+            "600": "#2563eb",
+            "700": "#1d4ed8",
+            "800": "#1e40af",
+            "900": "#1e3a8a",
+            "950": "#172554",
+        },
+    },
+    "BORDER_RADIUS": "1.5px",
     "SIDEBAR": {
-        "show_search": True,  # Habilita a barra de pesquisa na sidebar
-        "show_all_applications": True,  # Mantém o dropdown com todos os apps no topo
-        "show_nav_links": False,  # Esconde o menu automático sem ícones para não duplicar
+        "show_search": True,
+        "show_all_applications": False,
+        "show_nav_links": False,
         "navigation": [
             {
                 "title": _("Autenticação e Autorização"),
@@ -165,7 +181,7 @@ UNFOLD = {
                 "items": [
                     {
                         "title": _("Grupos"),
-                        "icon": "groups",  # Ícone do Material Symbols
+                        "icon": "groups",
                         "link": reverse_lazy("admin:auth_group_changelist"),
                     },
                 ],
@@ -200,3 +216,17 @@ UNFOLD = {
         ],
     },
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / ".cache",
+        # (Opcional) Configurações adicionais
+        "TIMEOUT": 900,  # Tempo em segundos para o cache expirar (15 minutos)
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,  # Número máximo de arquivos antes de apagar os mais antigos
+        },
+    }
+}
+
+CACHALOT_ENABLED = True
