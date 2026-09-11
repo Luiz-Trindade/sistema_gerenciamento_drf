@@ -1,22 +1,53 @@
 # Sistema de Gerenciamento
 
-[![Python](https://img.shields.io/badge/Python-3.13-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-5.x-092E20.svg?logo=django&logoColor=white)](https://www.djangoproject.com/)
-[![Django REST Framework](https://img.shields.io/badge/DRF-3.x-red.svg)](https://www.django-rest-framework.org/)
-[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D.svg?logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![Quasar](https://img.shields.io/badge/Quasar-2.x-1976D2.svg?logo=quasar&logoColor=white)](https://quasar.dev/)
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+Sistema de gerenciamento interno corporativo desenvolvido para otimizar fluxos operacionais, unificando controle de estoque, emissão de pedidos de venda, auditoria de usuários e gestão financeira de recebíveis em uma arquitetura modular de alta performance.
 
-Sistema de gerenciamento interno desenvolvido especificamente para atender às regras de negócio e fluxos operacionais da empresa.
+[![Python](https://img.shields.io/badge/Python-3.13+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.x-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3-4FC08D?logo=vuedotjs&logoColor=white)](https://vuejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
 
-O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend responsivo e interativo.
+## 📑 Sumário
+
+- [Arquitetura do Backend](#-arquitetura-do-backend)
+- [Módulos do Sistema](#-módulos-do-sistema-apps)
+- [Fluxo Operacional](#-fluxo-operacional)
+- [Tecnologias Utilizadas](#️-tecnologias-utilizadas)
+- [Como Executar](#-como-executar-o-backend-localmente)
+- [Documentação da API](#-documentação-da-api)
+- [Licença](#-licença)
 
 ---
 
-## 📦 Módulos do Sistema
+## 🏛️ Arquitetura do Backend
 
-- **Usuários:** Gestão customizada de usuários e permissões de acesso.
-- **Estoque:** Cadastro de Produtos e registro de Movimentações (Entrada/Saída), com cálculo dinâmico e automático do saldo de estoque.
+O projeto adota uma estrutura altamente modular baseada em **aplicações (apps)** do Django. Cada domínio de negócios é encapsulado de forma independente, replicando o seguinte padrão de responsabilidades:
+
+- **`models.py`**: Modelagem relacional via ORM, regras de negócio complexas, propriedades dinâmicas e validações de integridade.
+- **`admin.py`**: Back-office customizado utilizando o **Django Unfold** (interface moderna baseada em Tailwind CSS, paleta azul customizada, desativação global de bordas arredondadas, ícones via Material Symbols e navegação estruturada).
+- **`serializers.py`**: Camada de tradução, desserialização e validação de payloads JSON para a API REST.
+- **`views.py`**: Endpoints de API gerenciando o ciclo completo de requisições HTTP (`GET`, `POST`, `PATCH`, `DELETE`).
+
+O diretório central **`core`** centraliza as configurações globais do sistema (`settings.py`), o roteador principal de URLs (`urls.py`) e otimizações de performance em disco utilizando **`django-cachalot`** com backend baseado em arquivos.
+
+---
+
+## 📦 Módulos do Sistema (Apps)
+
+- **`usuarios`:** Gestão customizada de usuários do sistema, perfis de acesso, senhas e permissões administrativas.
+- **`estoque`:** Cadastro estruturado de produtos (com validação de preços e status) e registro de movimentações de entrada e saída, calculando de forma dinâmica e automática o saldo atual em estoque.
+- **`vendas`:** Gestão completa do ciclo de pedidos de venda integrados às movimentações de saída de estoque. Calcula automaticamente o valor total do pedido com base nos itens e preços vigentes, vincula o usuário responsável para fins de auditoria e gerencia o módulo financeiro de **Contas a Receber** (suportando faturamento à vista ou parcelado, controle de parcelas, meios de pagamento, datas de vencimento e baixas de recebimento).
+
+---
+
+## 🔄 Fluxo Operacional
+
+1. **Cadastro de Produtos:** O operador cadastra os itens definindo nome, descrição detalhada e preço unitário.
+2. **Controle de Estoque:** As mercadorias entram ou saem por meio de movimentações, atualizando o saldo disponível dinamicamente.
+3. **Emissão de Pedidos de Venda:** A venda agrupa as movimentações de saída de estoque de forma exclusiva, calculando o valor total do pedido automaticamente.
+4. **Gestão Financeira (Contas a Receber):** O pedido gera parcelas financeiras permitindo o acompanhamento de recebimentos, status operacionais, datas de vencimento e meios de pagamento (Pix, boleto, cartão, etc.).
 
 ---
 
@@ -24,12 +55,12 @@ O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend 
 
 ### Backend (API)
 
-- **Linguagem:** Python 3
+- **Linguagem:** Python 3.13
 - **Framework:** Django & Django REST Framework (DRF)
 - **Autenticação:** JWT (SimpleJWT)
 - **Documentação:** OpenAPI 3 (drf-spectacular / Swagger / ReDoc)
-- **Banco de Dados:** PostgreSQL (via Docker)
-- **Admin:** Django Admin customizado com Unfold (Tailwind CSS)
+- **Banco de Dados e cache:** PostgreSQL (via Docker) + `django-cachalot` (cache baseado em arquivos em `.django_cache/`)
+- **Admin:** Django Admin customizado com **Django Unfold** (Tailwind CSS)
 
 ### Frontend (SPA)
 
@@ -54,45 +85,51 @@ O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend 
 
 1. **Clone o repositório:**
 
-    ```bash
-    git clone <URL_DO_SEU_REPOSITORIO>
-    cd sistema_gerenciamento_drf
-    ```
+```bash
+git clone <URL_DO_SEU_REPOSITORIO>
+cd sistema_gerenciamento_drf
+
+```
 
 2. **Crie e ative o ambiente virtual:**
 
-    ```bash
-    python -m venv .venv
-    # Linux / macOS
-    source .venv/bin/activate
-    # Windows
-    .venv\Scripts\activate
-    ```
+```bash
+python -m venv .venv
+# Linux / macOS
+source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
+
+```
 
 3. **Instale as dependências:**
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pip install -r requirements.txt
+
+```
 
 4. **Inicie os serviços do Docker (Banco de Dados):**
 
-    ```bash
-    docker compose up -d db
-    ```
+```bash
+docker compose up -d db
+
+```
 
 5. **Execute as migrações e crie o superusuário:**
 
-    ```bash
-    python manage.py migrate
-    python manage.py createsuperuser
-    ```
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+
+```
 
 6. **Inicie o servidor de desenvolvimento:**
 
-    ```bash
-    python manage.py runserver
-    ```
+```bash
+python manage.py runserver
+
+```
 
 ---
 
@@ -100,12 +137,13 @@ O projeto é dividido em um Backend robusto servindo uma API REST e um Frontend 
 
 Com o servidor rodando, a documentação interativa da API pode ser acessada através das rotas:
 
-- **Swagger UI:** [http://localhost:8000/docs/](http://localhost:8000/docs/)
-- **ReDoc:** [http://localhost:8000/redoc/](http://localhost:8000/redoc/)
+- **Swagger UI:** [localhost:8000/docs](http://localhost:8000/docs/)
+- **ReDoc:** [localhost:8000/redoc](http://localhost:8000/redoc/)
 
 ---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a licença **GNU Affero General Public License v3.0 (AGPL-3.0)**.
-Veja o arquivo [LICENSE](https://www.google.com/search?q=LICENSE) para mais detalhes.
+Este projeto está licenciado sob a **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+
+Consulte o arquivo [`LICENSE`](LICENSE) ou a [versão oficial da licença no site do GNU](https://www.gnu.org/licenses/agpl-3.0.html) para mais detalhes.
