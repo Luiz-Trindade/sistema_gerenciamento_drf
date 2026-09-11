@@ -1,4 +1,12 @@
+<div align="center">
+
 # Sistema de Gerenciamento
+
+### Trabalho acadêmico — Big Data Python
+
+**Faculdade FACI Wyden**
+
+</div>
 
 Sistema de gerenciamento interno corporativo desenvolvido para otimizar fluxos operacionais, unificando controle de estoque, emissão de pedidos de venda, auditoria de usuários e gestão financeira de recebíveis em uma arquitetura modular de alta performance.
 
@@ -8,6 +16,24 @@ Sistema de gerenciamento interno corporativo desenvolvido para otimizar fluxos o
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
+
+> Projeto desenvolvido para a disciplina **Big Data Python**, do curso da **Faculdade FACI Wyden**.
+
+---
+
+## 👥 Participantes
+
+- Caio Pantoja Correa — 202302416071
+- Jessica Freire Carvalho — 202404170527
+- Lohhana Lima Pinheiro — 202508864207
+- Luiz Gabriel Magalhães Trindade — 202302954812
+- Paulo Henrique Magno Moura — 202302416081
+
+**Orientadora:** Prof.ª Me. Larissa de Paula Serrão Garcia
+
+## 🎓 Sobre o projeto
+
+Este projeto acadêmico apresenta uma solução modular para o gerenciamento corporativo de estoque, vendas, usuários e contas a receber, aplicando conceitos de desenvolvimento web, APIs REST, persistência de dados e organização de sistemas em Python.
 
 ## 📑 Sumário
 
@@ -146,4 +172,10 @@ Com o servidor rodando, a documentação interativa da API pode ser acessada atr
 
 Este projeto está licenciado sob a **GNU Affero General Public License v3.0 (AGPL-3.0)**.
 
+<div align="center">
+
+[![Licença GNU AGPL v3](https://www.gnu.org/graphics/agplv3-with-text-162x68.png)](https://www.gnu.org/licenses/agpl-3.0.html)
+
 Consulte o arquivo [`LICENSE`](LICENSE) ou a [versão oficial da licença no site do GNU](https://www.gnu.org/licenses/agpl-3.0.html) para mais detalhes.
+
+</div>
