@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "cachalot",
     "usuarios",
     "estoque",
+    "vendas",
 ]
 
 MIDDLEWARE = [
@@ -184,6 +185,11 @@ UNFOLD = {
                         "icon": "groups",
                         "link": reverse_lazy("admin:auth_group_changelist"),
                     },
+                    {
+                        "title": _("Usuários"),
+                        "icon": "manage_accounts",
+                        "link": reverse_lazy("admin:usuarios_usuario_changelist"),
+                    },
                 ],
             },
             {
@@ -203,13 +209,18 @@ UNFOLD = {
                 ],
             },
             {
-                "title": _("Usuarios"),
+                "title": _("Vendas"),
                 "separator": True,
                 "items": [
                     {
-                        "title": _("Usuários"),
-                        "icon": "manage_accounts",
-                        "link": reverse_lazy("admin:usuarios_usuario_changelist"),
+                        "title": _("Pedidos"),
+                        "icon": "shopping_cart",
+                        "link": reverse_lazy("admin:vendas_pedido_changelist"),
+                    },
+                    {
+                        "title": _("Contas a Receber"),
+                        "icon": "account_balance_wallet",
+                        "link": reverse_lazy("admin:vendas_contareceber_changelist"),
                     },
                 ],
             },
