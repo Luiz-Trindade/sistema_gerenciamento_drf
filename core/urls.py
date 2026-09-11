@@ -11,12 +11,15 @@ from drf_spectacular.views import (
 
 from usuarios.views import UsuarioViewSet
 from estoque.views import ProdutoViewSet, MovimentacaoViewSet
+from vendas.views import PedidoViewSet, ContaReceberViewSet
 
 # Router gera o API Root e os endpoints do ModelViewSet
 router = DefaultRouter()
 router.register(r"usuarios", UsuarioViewSet, basename="usuarios")
 router.register(r"produtos", ProdutoViewSet, basename="produtos")
 router.register(r"movimentacoes", MovimentacaoViewSet, basename="movimentacoes")
+router.register(r"pedidos", PedidoViewSet, basename="pedidos")
+router.register(r"contas-receber", ContaReceberViewSet, basename="contas-receber")
 
 api_urlpatterns = [
     # Router
