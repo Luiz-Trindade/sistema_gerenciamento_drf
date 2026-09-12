@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
 
 from .models import ContaReceber, Pedido
@@ -24,6 +25,7 @@ class ContaReceberInline(TabularInline):
 class PedidoAdmin(ModelAdmin):
     list_display = (
         "__str__",
+        "get_cliente",
         "usuario",
         "status",
         "valor_total",
@@ -31,9 +33,14 @@ class PedidoAdmin(ModelAdmin):
         "criado_em",
     )
     list_filter = ("status", "criado_em", "usuario")
-    search_fields = ("id", "usuario__email", "usuario__first_name")
+    search_fields = (
+        "id",
+        "cliente__nome",
+        "cliente__email",
+        "usuario__email",
+        "usuario__first_name",
+    )
 
-    # Campo M2M usando a renderização nativa bacana do Django/Unfold
     filter_horizontal = ("movimentacoes",)
 
     readonly_fields = (
@@ -44,11 +51,12 @@ class PedidoAdmin(ModelAdmin):
         "criado_em",
         "atualizado_em",
     )
-    autocomplete_fields = ["usuario"]
+    autocomplete_fields = ["cliente", "usuario"]
+
     inlines = [ContaReceberInline]
 
     fieldsets = (
-        (None, {"fields": ("usuario", "status")}),
+        (None, {"fields": ("cliente", "usuario", "status")}),
         ("Itens do Pedido", {"fields": ("movimentacoes",)}),
         (
             "Valores Calculados",
@@ -68,23 +76,35 @@ class PedidoAdmin(ModelAdmin):
         ),
     )
 
+    @admin.display(description="Cliente", ordering="cliente__nome")
+    def get_cliente(self, obj):
+        return obj.cliente.nome if obj.cliente else "Sem cliente"
+
     @admin.display(description="Qtd. Itens")
     def get_quantidade_total(self, obj):
         return obj.quantidade_total
 
     @admin.display(description="Valor Recebido")
     def get_valor_recebido(self, obj):
-        return obj.valor_recebido
+        return f"R$ {obj.valor_recebido:.2f}".replace(".", ",")
 
     @admin.display(description="Valor Pendente")
     def get_valor_pendente(self, obj):
-        return obj.valor_pendente
+        valor = obj.valor_pendente
+        if valor > 0:
+            return format_html(
+                '<span class="text-red-600 font-semibold">R$ {:.2f}</span>'.format(
+                    valor
+                ).replace(".", ",")
+            )
+        return f"R$ {valor:.2f}".replace(".", ",")
 
 
 @admin.register(ContaReceber)
 class ContaReceberAdmin(ModelAdmin):
     list_display = (
         "__str__",
+        "get_cliente",
         "pedido",
         "valor",
         "vencimento",
@@ -92,7 +112,7 @@ class ContaReceberAdmin(ModelAdmin):
         "meio_pagamento",
     )
     list_filter = ("status", "meio_pagamento", "vencimento")
-    search_fields = ("pedido__id", "observacao")
+    search_fields = ("pedido__id", "pedido__cliente__nome", "observacao")
     readonly_fields = ("criado_em", "atualizado_em")
     autocomplete_fields = ["pedido"]
 
@@ -121,3 +141,9 @@ class ContaReceberAdmin(ModelAdmin):
             },
         ),
     )
+
+    @admin.display(description="Cliente", ordering="pedido__cliente__nome")
+    def get_cliente(self, obj):
+        if obj.pedido and obj.pedido.cliente:
+            return obj.pedido.cliente.nome
+        return "Sem cliente"

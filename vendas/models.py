@@ -1,3 +1,4 @@
+# vendas/models.py
 from decimal import Decimal
 
 from django.conf import settings
@@ -18,6 +19,14 @@ class Pedido(models.Model):
         CONCLUIDO = "concluido", "Concluído"
         CANCELADO = "cancelado", "Cancelado"
 
+    cliente = models.ForeignKey(
+        "clientes.Cliente",
+        verbose_name="cliente",
+        on_delete=models.PROTECT,
+        related_name="pedidos",
+        null=True,
+        blank=True,
+    )
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         verbose_name="usuário responsável",

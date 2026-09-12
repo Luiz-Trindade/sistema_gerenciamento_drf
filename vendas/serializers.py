@@ -39,11 +39,15 @@ class PedidoSerializer(serializers.ModelSerializer):
     valor_pendente = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
     )
+    # Campo adicional para exibir o nome do cliente na resposta da API
+    cliente_nome = serializers.CharField(source="cliente.nome", read_only=True)
 
     class Meta:
         model = Pedido
         fields = [
             "id",
+            "cliente",  # Relacionamento adicionado
+            "cliente_nome",
             "usuario",
             "movimentacoes",
             "status",
@@ -68,7 +72,6 @@ class PedidoSerializer(serializers.ModelSerializer):
 
         # Valida as movimentações se elas foram enviadas na requisição
         if "movimentacoes" in attrs:
-            # Atribui temporariamente para passar na validação de existência de M2M
             pass
 
         return attrs

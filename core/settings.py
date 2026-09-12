@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "usuarios",
     "estoque",
     "vendas",
+    "clientes",
 ]
 
 MIDDLEWARE = [
@@ -221,6 +222,17 @@ UNFOLD = {
                         "title": _("Contas a Receber"),
                         "icon": "account_balance_wallet",
                         "link": reverse_lazy("admin:vendas_contareceber_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": _("Clientes"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Clientes"),
+                        "icon": "person",
+                        "link": reverse_lazy("admin:clientes_cliente_changelist"),
                     },
                 ],
             },
