@@ -1,0 +1,74 @@
+[
+  {
+    "nome": "Ácido FE 40 01 LT",
+    "descricao": "Matéria Prima",
+    "preco": "40.00",
+    "ativo": true
+  },
+  {
+    "nome": "Ácido Clorídrico",
+    "descricao": "Matéria Prima",
+    "preco": "25.00",
+    "ativo": true
+  },
+  {
+    "nome": "Ácido Sulfônico",
+    "descricao": "Matéria Prima",
+    "preco": "50.00",
+    "ativo": true
+  },
+  {
+    "nome": "Soda Cáustica 01 KG",
+    "descricao": "Matéria Prima",
+    "preco": "20.00",
+    "ativo": true
+  },
+  {
+    "nome": "Lauril 01 LT",
+    "descricao": "Matéria Prima",
+    "preco": "15.00",
+    "ativo": true
+  },
+  {
+    "nome": "Shampoo 05 LTS",
+    "descricao": "Produto Acabado",
+    "preco": "25.00",
+    "ativo": true
+  },
+  {
+    "nome": "Desengraxante 05 LTS",
+    "descricao": "Produto Acabado",
+    "preco": "25.00",
+    "ativo": true
+  },
+  {
+    "nome": "L. Alumínio 05 LTS",
+    "descricao": "Produto Acabado (Limpa Alumínio)",
+    "preco": "25.00",
+    "ativo": true
+  },
+  {
+    "nome": "Silicone Gel 500 GR",
+    "descricao": "Produto Acabado",
+    "preco": "15.00",
+    "ativo": true
+  },
+  {
+    "nome": "L. Pneus 500 GR",
+    "descricao": "Produto Acabado (Limpa Pneus)",
+    "preco": "10.00",
+    "ativo": true
+  },
+  {
+    "nome": "Sintra 01 LT",
+    "descricao": "Produto Acabado",
+    "preco": "10.00",
+    "ativo": true
+  },
+  {
+    "nome": "Vaselina Líquida",
+    "descricao": "Produto Acabado",
+    "preco": "30.00",
+    "ativo": true
+  }
+]

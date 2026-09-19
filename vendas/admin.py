@@ -1,8 +1,63 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from import_export import fields, resources
+from import_export.admin import ImportExportModelAdmin
+from import_export.widgets import ForeignKeyWidget
 from unfold.admin import ModelAdmin, TabularInline
+from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
 from .models import ContaReceber, Pedido
+
+# ==========================================
+# 1. RESOURCES
+# ==========================================
+
+
+class PedidoResource(resources.ModelResource):
+    class Meta:
+        model = Pedido
+        fields = (
+            "id",
+            "cliente",
+            "usuario",
+            "status",
+            "valor_total",
+            "criado_em",
+            "atualizado_em",
+        )
+        export_order = fields
+
+
+class ContaReceberResource(resources.ModelResource):
+    pedido = fields.Field(
+        column_name="pedido",
+        attribute="pedido",
+        widget=ForeignKeyWidget(Pedido, field="id"),
+    )
+
+    class Meta:
+        model = ContaReceber
+        fields = (
+            "id",
+            "pedido",
+            "numero_parcela",
+            "total_parcelas",
+            "valor",
+            "vencimento",
+            "status",
+            "meio_pagamento",
+            "valor_pago",
+            "pago_em",
+            "observacao",
+            "criado_em",
+            "atualizado_em",
+        )
+        export_order = fields
+
+
+# ==========================================
+# 2. ADMINS & INLINES
+# ==========================================
 
 
 class ContaReceberInline(TabularInline):
@@ -22,7 +77,11 @@ class ContaReceberInline(TabularInline):
 
 
 @admin.register(Pedido)
-class PedidoAdmin(ModelAdmin):
+class PedidoAdmin(ModelAdmin, ImportExportModelAdmin):
+    resource_classes = [PedidoResource]
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+
     list_display = (
         "__str__",
         "get_cliente",
@@ -101,7 +160,11 @@ class PedidoAdmin(ModelAdmin):
 
 
 @admin.register(ContaReceber)
-class ContaReceberAdmin(ModelAdmin):
+class ContaReceberAdmin(ModelAdmin, ImportExportModelAdmin):
+    resource_classes = [ContaReceberResource]
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+
     list_display = (
         "__str__",
         "get_cliente",

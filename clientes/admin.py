@@ -1,11 +1,44 @@
 from django.contrib import admin
+from import_export import resources
+from import_export.admin import ImportExportModelAdmin
 from unfold.admin import ModelAdmin
+from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
 from .models import Cliente
 
+# ==========================================
+# 1. RESOURCE
+# ==========================================
+
+
+class ClienteResource(resources.ModelResource):
+    class Meta:
+        model = Cliente
+        fields = (
+            "id",
+            "nome",
+            "email",
+            "telefone",
+            "cpf",
+            "cnpj",
+            "ativo",
+            "criado_em",
+            "atualizado_em",
+        )
+        export_order = fields
+
+
+# ==========================================
+# 2. ADMIN
+# ==========================================
+
 
 @admin.register(Cliente)
-class ClienteAdmin(ModelAdmin):
+class ClienteAdmin(ModelAdmin, ImportExportModelAdmin):
+    resource_classes = [ClienteResource]
+    import_form_class = ImportForm
+    export_form_class = ExportForm
+
     # Campos exibidos na tabela de listagem
     list_display = [
         "nome",
