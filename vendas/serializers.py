@@ -9,7 +9,7 @@ class ContaReceberSerializer(serializers.ModelSerializer):
         max_digits=12, decimal_places=2, read_only=True
     )
 
-    # Campos flat para exibir dados do pedido/cliente sem queries extras (N+1)
+    # Campos flat para exibir dados do pedido/cliente
     pedido_id = serializers.IntegerField(source="pedido.id", read_only=True)
     cliente_nome = serializers.CharField(
         source="pedido.cliente.nome", read_only=True, allow_null=True
@@ -19,9 +19,9 @@ class ContaReceberSerializer(serializers.ModelSerializer):
         model = ContaReceber
         fields = [
             "id",
-            "pedido",  # Mantido para permitir a vinculação na criação (write)
-            "pedido_id",  # Novo campo para exibição
-            "cliente_nome",  # Novo campo para exibição
+            "pedido",
+            "pedido_id",
+            "cliente_nome",
             "numero_parcela",
             "total_parcelas",
             "valor",
@@ -84,4 +84,18 @@ class PedidoSerializer(serializers.ModelSerializer):
             "valor_pendente",
             "criado_em",
             "atualizado_em",
+            # REMOVIDO "usuario" dos read_only_fields para evitar erro de validação no PUT
         ]
+
+        # Campos opcionais (não obrigatórios) nas atualizações
+        extra_kwargs = {
+            "usuario": {"required": False},
+        }
+
+    def create(self, validated_data):
+        # Na criação, o usuario vem do request.user via views.py perform_create
+        # Mas se vier no validated_data, usamos
+        if "usuario" not in validated_data:
+            # Se não veio, será setado pelo view
+            pass
+        return super().create(validated_data)
