@@ -1,3 +1,4 @@
+# vendas/serializers.py
 from rest_framework import serializers
 from .models import ContaReceber, Pedido
 
@@ -39,14 +40,16 @@ class PedidoSerializer(serializers.ModelSerializer):
     valor_pendente = serializers.DecimalField(
         max_digits=12, decimal_places=2, read_only=True
     )
-    # Campo adicional para exibir o nome do cliente na resposta da API
     cliente_nome = serializers.CharField(source="cliente.nome", read_only=True)
+
+    # Tornamos read_only para forçar o uso do endpoint de criação com a lista de 'itens'
+    movimentacoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Pedido
         fields = [
             "id",
-            "cliente",  # Relacionamento adicionado
+            "cliente",
             "cliente_nome",
             "usuario",
             "movimentacoes",
@@ -59,19 +62,12 @@ class PedidoSerializer(serializers.ModelSerializer):
             "criado_em",
             "atualizado_em",
         ]
-        read_only_fields = ["id", "valor_total", "criado_em", "atualizado_em"]
-
-    def validate(self, attrs):
-        # Cria uma instância temporária para rodar as validações de regras de negócio do model
-        instance = Pedido(**attrs)
-        # Se for atualização, usa a instância real
-        if self.instance:
-            for attr, value in attrs.items():
-                setattr(instance, attr, value)
-            instance.pk = self.instance.pk
-
-        # Valida as movimentações se elas foram enviadas na requisição
-        if "movimentacoes" in attrs:
-            pass
-
-        return attrs
+        read_only_fields = [
+            "id",
+            "valor_total",
+            "quantidade_total",
+            "valor_recebido",
+            "valor_pendente",
+            "criado_em",
+            "atualizado_em",
+        ]

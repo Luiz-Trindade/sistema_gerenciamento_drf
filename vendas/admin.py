@@ -1,5 +1,8 @@
+# vendas/admin.py
 from django.contrib import admin
-from django.utils.html import format_html
+from django import forms
+from django.utils.safestring import mark_safe
+from django.core.exceptions import ValidationError as DjangoValidationError
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
@@ -7,6 +10,7 @@ from unfold.admin import ModelAdmin, TabularInline
 from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
 from .models import ContaReceber, Pedido
+from .services import criar_pedido_com_itens
 
 # ==========================================
 # 1. RESOURCES
@@ -76,8 +80,56 @@ class ContaReceberInline(TabularInline):
     )
 
 
+class PedidoAdminForm(forms.ModelForm):
+    itens_raw = forms.CharField(
+        required=False,
+        label="Adicionar Itens (Formato: ID_Produto:Quantidade)",
+        help_text="Ex: 1:2, 5:1 (Cria movimentações de saída automaticamente ao salvar um NOVO pedido). Deixe em branco para gerenciar manualmente via 'Movimentações' abaixo.",
+        widget=forms.TextInput(attrs={"placeholder": "ex: 1:2, 3:1"}),
+    )
+
+    class Meta:
+        model = Pedido
+        fields = "__all__"
+
+    def save(self, commit=True):
+        # Se for um novo pedido (sem PK) e o campo de itens foi preenchido
+        if not self.instance.pk and self.cleaned_data.get("itens_raw"):
+            itens_input = self.cleaned_data["itens_raw"]
+            itens = []
+
+            # Parse simples do formato "id:qtd, id:qtd"
+            for parte in itens_input.split(","):
+                parte = parte.strip()
+                if ":" in parte:
+                    prod_id, qtd = parte.split(":")
+                    itens.append(
+                        {
+                            "produto_id": int(prod_id.strip()),
+                            "quantidade": int(qtd.strip()),
+                        }
+                    )
+
+            if itens:
+                # Usa o mesmo serviço unificado!
+                return criar_pedido_com_itens(
+                    usuario=self.cleaned_data["usuario"],
+                    cliente_id=(
+                        self.cleaned_data["cliente"].id
+                        if self.cleaned_data["cliente"]
+                        else None
+                    ),
+                    status=self.cleaned_data["status"],
+                    itens=itens,
+                )
+
+        # Comportamento padrão do Django (para edições ou quando itens_raw está vazio)
+        return super().save(commit=commit)
+
+
 @admin.register(Pedido)
 class PedidoAdmin(ModelAdmin, ImportExportModelAdmin):
+    form = PedidoAdminForm
     resource_classes = [PedidoResource]
     import_form_class = ImportForm
     export_form_class = ExportForm
@@ -116,7 +168,11 @@ class PedidoAdmin(ModelAdmin, ImportExportModelAdmin):
 
     fieldsets = (
         (None, {"fields": ("cliente", "usuario", "status")}),
-        ("Itens do Pedido", {"fields": ("movimentacoes",)}),
+        ("Criação Rápida de Itens", {"fields": ("itens_raw",)}),
+        (
+            "Itens do Pedido (Avançado)",
+            {"fields": ("movimentacoes",), "classes": ("collapse",)},
+        ),
         (
             "Valores Calculados",
             {
@@ -135,6 +191,10 @@ class PedidoAdmin(ModelAdmin, ImportExportModelAdmin):
         ),
     )
 
+    # ==========================================
+    # MÉTODOS CUSTOMIZADOS PARA LIST_DISPLAY E READONLY_FIELDS
+    # ==========================================
+
     @admin.display(description="Cliente", ordering="cliente__nome")
     def get_cliente(self, obj):
         return obj.cliente.nome if obj.cliente else "Sem cliente"
@@ -151,10 +211,10 @@ class PedidoAdmin(ModelAdmin, ImportExportModelAdmin):
     def get_valor_pendente(self, obj):
         valor = obj.valor_pendente
         if valor > 0:
-            return format_html(
-                '<span class="text-red-600 font-semibold">R$ {:.2f}</span>'.format(
-                    valor
-                ).replace(".", ",")
+            valor_formatado = f"R$ {valor:.2f}".replace(".", ",")
+            # mark_safe é a forma mais segura e compatível de retornar HTML customizado no Admin
+            return mark_safe(
+                f'<span class="text-red-600 font-semibold">{valor_formatado}</span>'
             )
         return f"R$ {valor:.2f}".replace(".", ",")
 
