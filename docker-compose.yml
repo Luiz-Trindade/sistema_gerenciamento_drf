@@ -1,0 +1,19 @@
+services:
+    django:
+        build: .
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./db.sqlite3:/app/db.sqlite3
+            # - ./media:/app/media
+        # env_file:
+        #     - .env
+        depends_on:
+            - redis_cache
+        restart: unless-stopped
+
+    redis_cache:
+        image: redis:7-alpine
+        restart: unless-stopped
+        # volumes:
+        #   - redis_data:/data  # Descomente se quiser persistir o cache entre reinícios

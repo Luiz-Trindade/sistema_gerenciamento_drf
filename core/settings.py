@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-auq$a_itrtcohki5ilzxk5zpqx*fboirc2sehbx0i(*_ri_2$g"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -143,7 +144,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
@@ -289,14 +296,17 @@ UNFOLD = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
-        "LOCATION": BASE_DIR / ".cache",
-        # (Opcional) Configurações adicionais
-        "TIMEOUT": 900,  # Tempo em segundos para o cache expirar (15 minutos)
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis_cache:6379/1",  # 'redis_cache' é o nome do serviço no compose
         "OPTIONS": {
-            "MAX_ENTRIES": 1000,  # Número máximo de arquivos antes de apagar os mais antigos
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "IGNORE_EXCEPTIONS": True,  # Evita que o site caia se o Redis falhar
         },
     }
 }
+
+# Opcional: Configurar sessões para usar o Redis também
+# SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+# SESSION_CACHE_ALIAS = "default"
 
 CACHALOT_ENABLED = True
