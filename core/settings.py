@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
@@ -160,6 +161,17 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30),  # Token de acesso válido por 30 dias
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),  # Token de refresh válido por 30 dias
+    "ROTATE_REFRESH_TOKENS": True,  # Gera um novo refresh token a cada uso (mais seguro)
+    "BLACKLIST_AFTER_ROTATION": True,  # Invalida o refresh token antigo após o uso
+    "UPDATE_LAST_LOGIN": True,  # Atualiza o último login do usuário
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 SPECTACULAR_SETTINGS = {
