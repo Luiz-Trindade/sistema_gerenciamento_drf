@@ -1,20 +1,20 @@
 # vendas/services.py
 from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
 from estoque.models import Movimentacao, Produto
-from .models import Pedido
+from .models import Pedido, ContaReceber
 
 
 @transaction.atomic
-def criar_pedido_com_itens(usuario, cliente_id, status, itens):
+def criar_pedido_com_itens(
+    usuario, cliente_id, status, itens, pagar_agora=False, meio_pagamento=None
+):
     """
-    Cria um Pedido e suas respectivas Movimentações de Saída de forma atômica.
-
-    :param usuario: Instância do usuário (request.user)
-    :param cliente_id: ID do cliente (pode ser None se não for obrigatório)
-    :param status: Status inicial do pedido (ex: 'criado')
-    :param itens: Lista de dicionários [{'produto_id': int, 'quantidade': int, 'observacao': str}]
-    :return: Instância do Pedido criado
+    Cria um Pedido, suas Movimentações de Saída e uma Conta a Receber.
+    Se pagar_agora=True, a conta é criada já como PAGA.
     """
     if not itens:
         raise ValidationError(
@@ -37,18 +37,14 @@ def criar_pedido_com_itens(usuario, cliente_id, status, itens):
         if not produto_id or not quantidade:
             raise ValidationError("Cada item deve conter 'produto_id' e 'quantidade'.")
 
-        # select_for_update() bloqueia a linha do produto no banco até o fim da transação,
-        # evitando que dois pedidos simultâneos leiam o mesmo saldo e causem estoque negativo.
         produto = Produto.objects.select_for_update().get(id=produto_id)
 
-        # Validação de estoque (Regra de Negócio Crucial)
         if produto.saldo_estoque < quantidade:
             raise ValidationError(
                 f"Saldo insuficiente para o produto '{produto.nome}'. "
                 f"Saldo atual: {produto.saldo_estoque}, Solicitado: {quantidade}"
             )
 
-        # Cria a movimentação de saída
         mov = Movimentacao.objects.create(
             produto=produto,
             tipo=Movimentacao.Tipo.SAIDA,
@@ -57,11 +53,37 @@ def criar_pedido_com_itens(usuario, cliente_id, status, itens):
         )
         movimentacoes_ids.append(mov.id)
 
-    # 3. Associar as movimentações criadas ao pedido (ManyToMany)
+    # 3. Associar as movimentações e calcular valor total
     pedido.movimentacoes.set(movimentacoes_ids)
+    valor_total = pedido.atualizar_valor_total()
 
-    # 4. Forçar a atualização do valor total (o sinal m2m_changed já faz isso,
-    # mas chamar explicitamente garante a consistência imediata)
-    pedido.atualizar_valor_total()
+    # 4. Criar a Conta a Receber com validação rigorosa
+    if valor_total > 0:
+        conta = ContaReceber(
+            pedido=pedido,
+            numero_parcela=1,
+            total_parcelas=1,
+            valor=valor_total,
+            observacao="Gerada automaticamente na criação do pedido (PDV).",
+        )
+
+        if pagar_agora and meio_pagamento:
+            # Fluxo de Pagamento Imediato
+            conta.status = ContaReceber.Status.PAGA
+            conta.valor_pago = valor_total
+            conta.meio_pagamento = meio_pagamento
+            conta.pago_em = timezone.now()
+            conta.vencimento = timezone.localdate()  # Vence hoje, pois já foi pago
+        else:
+            # Fluxo Padrão (A Prazo)
+            conta.status = ContaReceber.Status.PENDENTE
+            conta.valor_pago = Decimal("0.00")
+            conta.meio_pagamento = None
+            conta.pago_em = None
+            conta.vencimento = timezone.localdate() + timedelta(days=30)
+
+        # Garante que as regras do modelo (clean) sejam respeitadas antes de salvar
+        conta.full_clean()
+        conta.save()
 
     return pedido

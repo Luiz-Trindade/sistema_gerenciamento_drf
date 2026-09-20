@@ -9,11 +9,19 @@ class ContaReceberSerializer(serializers.ModelSerializer):
         max_digits=12, decimal_places=2, read_only=True
     )
 
+    # Campos flat para exibir dados do pedido/cliente sem queries extras (N+1)
+    pedido_id = serializers.IntegerField(source="pedido.id", read_only=True)
+    cliente_nome = serializers.CharField(
+        source="pedido.cliente.nome", read_only=True, allow_null=True
+    )
+
     class Meta:
         model = ContaReceber
         fields = [
             "id",
-            "pedido",
+            "pedido",  # Mantido para permitir a vinculação na criação (write)
+            "pedido_id",  # Novo campo para exibição
+            "cliente_nome",  # Novo campo para exibição
             "numero_parcela",
             "total_parcelas",
             "valor",
@@ -28,7 +36,15 @@ class ContaReceberSerializer(serializers.ModelSerializer):
             "criado_em",
             "atualizado_em",
         ]
-        read_only_fields = ["id", "valor_pago", "pago_em", "criado_em", "atualizado_em"]
+        read_only_fields = [
+            "id",
+            "valor_pago",
+            "pago_em",
+            "criado_em",
+            "atualizado_em",
+            "pedido_id",
+            "cliente_nome",
+        ]
 
 
 class PedidoSerializer(serializers.ModelSerializer):
@@ -41,8 +57,6 @@ class PedidoSerializer(serializers.ModelSerializer):
         max_digits=12, decimal_places=2, read_only=True
     )
     cliente_nome = serializers.CharField(source="cliente.nome", read_only=True)
-
-    # Tornamos read_only para forçar o uso do endpoint de criação com a lista de 'itens'
     movimentacoes = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
