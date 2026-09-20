@@ -1,0 +1,25 @@
+services:
+    django:
+        image: ghcr.io/luiz-trindade/sistema_gerenciamento:latest
+        ports:
+            - "127.0.0.1:8005:8000" # Bind apenas no localhost para o Caddy proxyar com segurança
+        volumes:
+            - ./db.sqlite3:/app/db.sqlite3
+            - ./media:/app/media # Essencial em produção para não perder uploads
+        # env_file:
+        #     - .env # Garanta que este arquivo exista na VPS com DEBUG=False
+        depends_on:
+            - redis_cache
+        restart: unless-stopped
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "10m"
+                max-file: "3" # Evita encher o disco da VPS com logs
+
+    redis_cache:
+        image: redis:7-alpine
+        ports:
+            - "6380:6379" # Mantido conforme solicitado. (Dica: pode remover essa linha se ninguém fora do Docker precisar acessar o Redis)
+        command: redis-server --save 60 1 --loglevel warning # Otimização básica de persistência e logs
+        restart: unless-stopped

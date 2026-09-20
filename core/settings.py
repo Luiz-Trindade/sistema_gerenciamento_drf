@@ -77,6 +77,20 @@ CORS_ALLOW_CREDENTIALS = True
 #     "http://localhost:8080",
 # ]
 
+# Domínios confiáveis para CSRF (obrigatório em produção)
+CSRF_TRUSTED_ORIGINS = [
+    "https://api.simplesgestao.digitalizesistemas.com",
+    "https://app.simplesgestao.digitalizesistemas.com",
+    "http://localhost:8000",
+
+]
+
+# Informa ao Django que o Caddy está lidando com o HTTPS
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Garante que os cookies de sessão e CSRF só trafeguem por HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 ROOT_URLCONF = "core.urls"
 
