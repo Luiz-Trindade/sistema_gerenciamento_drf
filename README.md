@@ -158,8 +158,14 @@ O diretório central **`core`** gerencia as configurações globais (`settings.p
     ```
 
 7. **Inicie o servidor de desenvolvimento:**
+
     ```bash
     uv run manage.py runserver
+    ```
+
+8. **Iniciar em modo de produção:**
+    ```bash
+    uv run uvicorn core.asgi:application --host 0.0.0.0 --port 8000 --workers $(nproc)
     ```
 
 ---
