@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-auq$a_itrtcohki5ilzxk5zpqx*fboirc2sehbx0i(*_ri_2$g"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "cachalot",
+    "dashboards",
     "usuarios",
     "estoque",
     "vendas",
@@ -82,7 +83,6 @@ CSRF_TRUSTED_ORIGINS = [
     "https://api.simplesgestao.digitalizesistemas.com",
     "https://app.simplesgestao.digitalizesistemas.com",
     "http://localhost:8000",
-
 ]
 
 # Informa ao Django que o Caddy está lidando com o HTTPS
