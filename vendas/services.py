@@ -1,11 +1,14 @@
 # vendas/services.py
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
+
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.utils import timezone
+
 from estoque.models import Movimentacao, Produto
-from .models import Pedido, ContaReceber
+
+from .models import ContaReceber, Pedido
 
 
 @transaction.atomic
@@ -14,12 +17,21 @@ def criar_pedido_com_itens(
 ):
     """
     Cria um Pedido, suas Movimentações de Saída e uma Conta a Receber.
-    Se pagar_agora=True, a conta é criada já como PAGA.
+    Se pagar_agora=True, a conta é criada já como PAGA e o pedido é
+    automaticamente marcado como CONCLUIDO.
     """
     if not itens:
         raise ValidationError(
             "É necessário fornecer pelo menos um item para criar o pedido."
         )
+
+    # 0. Regra: pedido pago no ato é automaticamente concluído.
+    if pagar_agora:
+        if not meio_pagamento:
+            raise ValidationError(
+                "Informe o meio de pagamento para pagamento imediato."
+            )
+        status = Pedido.Status.CONCLUIDO
 
     # 1. Criar o Pedido básico
     pedido = Pedido.objects.create(
@@ -67,7 +79,7 @@ def criar_pedido_com_itens(
             observacao="Gerada automaticamente na criação do pedido (PDV).",
         )
 
-        if pagar_agora and meio_pagamento:
+        if pagar_agora:
             # Fluxo de Pagamento Imediato
             conta.status = ContaReceber.Status.PAGA
             conta.valor_pago = valor_total
@@ -82,7 +94,6 @@ def criar_pedido_com_itens(
             conta.pago_em = None
             conta.vencimento = timezone.localdate() + timedelta(days=30)
 
-        # Garante que as regras do modelo (clean) sejam respeitadas antes de salvar
         conta.full_clean()
         conta.save()
 

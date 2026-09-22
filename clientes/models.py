@@ -4,10 +4,11 @@ from django.db import models
 
 class Cliente(models.Model):
     nome = models.CharField(max_length=255, verbose_name="Nome Completo")
-    email = models.EmailField(unique=True, verbose_name="E-mail")
+    email = models.EmailField(unique=True, blank=True, null=True, verbose_name="E-mail")
     telefone = models.CharField(
         max_length=20, blank=True, null=True, verbose_name="Telefone"
     )
+    descricao = models.TextField(blank=True, null=True, verbose_name="Descrição")
     cpf = models.CharField(
         max_length=14, unique=True, blank=True, null=True, verbose_name="CPF"
     )

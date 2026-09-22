@@ -1,9 +1,34 @@
 from rest_framework import serializers
+
 from .models import Movimentacao, Produto
 
 
+class ProdutoNestedSerializer(serializers.ModelSerializer):
+    """Serializer enxuto para embutir o produto nas respostas."""
+
+    class Meta:
+        model = Produto
+        fields = ["id", "nome"]
+
+
+class ProdutoRelatedField(serializers.PrimaryKeyRelatedField):
+    """
+    Aceita o ID do produto na escrita (POST/PUT) e retorna o objeto
+    aninhado na leitura (GET).
+
+    `use_pk_only_optimization = False` é essencial: sem isso o DRF
+    entrega um `PKOnlyObject` (só com `.pk`) em vez da instância real,
+    e o `ProdutoNestedSerializer` falha ao acessar `.nome`.
+    """
+
+    def use_pk_only_optimization(self):
+        return False
+
+    def to_representation(self, value):
+        return ProdutoNestedSerializer(value).data
+
+
 class ProdutoSerializer(serializers.ModelSerializer):
-    # Alterado de DecimalField para IntegerField para refletir o model
     saldo_estoque = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -22,6 +47,8 @@ class ProdutoSerializer(serializers.ModelSerializer):
 
 
 class MovimentacaoSerializer(serializers.ModelSerializer):
+    produto = ProdutoRelatedField(queryset=Produto.objects.all())
+
     class Meta:
         model = Movimentacao
         fields = [
@@ -39,7 +66,6 @@ class MovimentacaoSerializer(serializers.ModelSerializer):
         tipo = attrs.get("tipo")
         quantidade = attrs.get("quantidade")
 
-        # Validação para impedir saída se o saldo em estoque for insuficiente
         if tipo == Movimentacao.Tipo.SAIDA and produto and quantidade:
             saldo_atual = produto.saldo_estoque
             if quantidade > saldo_atual:
