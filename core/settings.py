@@ -14,6 +14,7 @@ from pathlib import Path
 from datetime import timedelta
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from django.templatetags.static import static
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -162,6 +163,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 STORAGES = {
     "staticfiles": {
@@ -210,6 +214,13 @@ UNFOLD = {
     "SITE_TITLE": "Simples Gestão",
     "SITE_HEADER": "Simples Gestão",
     "SITE_SUBHEADER": "Administração",
+    "SITE_ICON": lambda request: static("img/favicon.png"),
+    "LOGIN": {
+        # Imagem de fundo para a tela de login
+        "image": lambda request: static("img/favicon.png"),
+        # Redireciona para uma página específica após o login
+        "redirect_after": lambda request: reverse_lazy("admin:index"),
+    },
     "COLORS": {
         "primary": {
             "50": "#eff6ff",
