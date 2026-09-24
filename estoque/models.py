@@ -6,6 +6,8 @@ from django.db import models
 from django.db.models import Case, IntegerField, F, Sum, Value, When
 from django.db.models.functions import Coalesce
 
+from simple_history.models import HistoricalRecords
+
 
 class Produto(models.Model):
     """
@@ -94,6 +96,8 @@ class Produto(models.Model):
             ),
         )
         return resultado["saldo"]
+
+    history = HistoricalRecords()
 
 
 class Movimentacao(models.Model):

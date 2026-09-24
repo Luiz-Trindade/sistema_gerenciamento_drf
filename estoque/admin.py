@@ -2,6 +2,7 @@ from django.contrib import admin
 from import_export import fields, resources
 from import_export.admin import ImportExportModelAdmin
 from import_export.widgets import ForeignKeyWidget
+from simple_history.admin import SimpleHistoryAdmin
 from unfold.admin import ModelAdmin, TabularInline
 from unfold.decorators import display
 
@@ -60,7 +61,7 @@ class MovimentacaoInline(TabularInline):
 
 
 @admin.register(Produto)
-class ProdutoAdmin(ModelAdmin, ImportExportModelAdmin):
+class ProdutoAdmin(SimpleHistoryAdmin, ImportExportModelAdmin, ModelAdmin):
     resource_classes = [ProdutoResource]
 
     list_display = ("nome", "preco", "get_saldo_estoque", "ativo", "criado_em")
@@ -68,7 +69,10 @@ class ProdutoAdmin(ModelAdmin, ImportExportModelAdmin):
     list_filter = ("ativo", "criado_em", "atualizado_em")
     search_fields = ("nome", "descricao")
     readonly_fields = ("get_saldo_estoque", "criado_em", "atualizado_em")
-    inlines = [MovimentacaoInline]
+    # inlines = [MovimentacaoInline]
+
+    # Colunas extras no histórico (opcional, mas útil)
+    history_list_display = ["preco", "ativo"]
 
     @admin.display(description="Saldo em Estoque")
     def get_saldo_estoque(self, obj):

@@ -10,6 +10,7 @@ dependencies = [
     "django-import-export>=4.4.1",
     "django-jazzmin>=3.0.5",
     "django-redis>=7.0.0",
+    "django-simple-history>=3.13.0",
     "django-unfold[import-export]>=0.105.0",
     "djangorestframework>=3.18.1",
     "djangorestframework-simplejwt>=5.5.1",
