@@ -6,8 +6,23 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema
 
-from .selectors import DashboardFilters, DashboardSelectors
-from .serializers import DashboardPrincipalSerializer  # <-- Importe o serializer
+from .selectors import (
+    DashboardFilters,
+    DashboardSelectors,
+    EstoqueFilters,
+    EstoqueSelectors,
+)
+from .serializers import DashboardPrincipalSerializer
+
+
+def _parse_date(date_str: str):
+    """Converte 'YYYY-MM-DD' em date, ou None se inválido/ausente."""
+    if not date_str:
+        return None
+    try:
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+    except ValueError:
+        return None
 
 
 class DashboardPrincipalAPIView(APIView):
@@ -72,3 +87,50 @@ class DashboardPrincipalAPIView(APIView):
             "meios_pagamento": selectors.get_meios_pagamento(),
             "pedidos_por_status": selectors.get_pedidos_por_status(),
         }
+
+
+class EstoqueResumoAPIView(APIView):
+    """
+    Resumo do módulo Estoque.
+
+    Alimenta a página de entrada do estoque com KPIs de topo,
+    listas de alertas acionáveis e feed de movimentações recentes.
+    """
+
+    serializer_class = None  # opcional: criar EstoqueResumoSerializer
+
+    @extend_schema(
+        summary="Resumo do módulo Estoque",
+        description=(
+            "Retorna KPIs, alertas (abaixo do mínimo, zerados, sem "
+            "movimentação) e as últimas movimentações registradas."
+        ),
+        responses={200: dict},
+    )
+    def get(self, request):
+        filters = EstoqueFilters(
+            start_date=_parse_date(request.query_params.get("start_date")),
+            end_date=_parse_date(request.query_params.get("end_date")),
+            limite_baixo=int(request.query_params.get("limite_baixo", 5)),
+            dias_parado=int(request.query_params.get("dias_parado", 90)),
+        )
+        selectors = EstoqueSelectors(filters=filters)
+
+        data = {
+            "kpis": {
+                "total_produtos": selectors.get_kpi_total_produtos(),
+                "valor_estoque": str(selectors.get_kpi_valor_estoque()),
+                "abaixo_minimo": selectors.get_kpi_abaixo_minimo(),
+                "zerados": selectors.get_kpi_zerados(),
+                "movimentacoes": selectors.get_kpi_movimentacoes(),
+                "entradas": selectors.get_kpi_entradas(),
+                "saidas": selectors.get_kpi_saidas(),
+            },
+            "alertas": {
+                "abaixo_minimo": selectors.get_alertas_abaixo_minimo(limit=5),
+                "zerados": selectors.get_alertas_zerados(limit=5),
+                "sem_movimentacao": selectors.get_alertas_sem_movimentacao(limit=5),
+            },
+            "atividades_recentes": selectors.get_movimentacoes_recentes(limit=10),
+        }
+        return Response(data, status=status.HTTP_200_OK)
