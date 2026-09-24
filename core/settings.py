@@ -123,6 +123,21 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+        "OPTIONS": {
+            # Ativa o modo WAL para permitir leituras e escritas concorrentes.
+            "init_command": (
+                "PRAGMA journal_mode=WAL;"
+                "PRAGMA synchronous=NORMAL;"
+                "PRAGMA mmap_size = 134217728;"
+                "PRAGMA journal_size_limit = 27103364;"
+                "PRAGMA cache_size=2000;"
+            ),
+            # Garante que as transações de escrita adquiram o lock imediatamente,
+            # evitando erros de "database is locked".
+            "transaction_mode": "IMMEDIATE",
+            # Tempo de espera (em segundos) para o banco ser liberado antes de dar erro.
+            "timeout": 5,
+        },
     }
 }
 
