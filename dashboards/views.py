@@ -11,6 +11,8 @@ from .selectors import (
     DashboardSelectors,
     EstoqueFilters,
     EstoqueSelectors,
+    VendasFilters,
+    VendasSelectors,
 )
 from .serializers import DashboardPrincipalSerializer
 
@@ -132,5 +134,56 @@ class EstoqueResumoAPIView(APIView):
                 "sem_movimentacao": selectors.get_alertas_sem_movimentacao(limit=5),
             },
             "atividades_recentes": selectors.get_movimentacoes_recentes(limit=10),
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class VendasResumoAPIView(APIView):
+    """
+    Resumo do módulo Vendas.
+
+    Alimenta a página de entrada de vendas com KPIs de topo,
+    listas de alertas acionáveis (contas vencidas, contas a
+    vencer, pedidos parados) e feed de atividades recentes.
+    """
+
+    serializer_class = None  # opcional: criar VendasResumoSerializer
+
+    @extend_schema(
+        summary="Resumo do módulo Vendas",
+        description=(
+            "Retorna KPIs, alertas (contas vencidas, contas a vencer, "
+            "pedidos parados) e as últimas atividades registradas."
+        ),
+        responses={200: dict},
+    )
+    def get(self, request):
+        filters = VendasFilters(
+            start_date=_parse_date(request.query_params.get("start_date")),
+            end_date=_parse_date(request.query_params.get("end_date")),
+            dias_vencimento_proximo=int(
+                request.query_params.get("dias_vencimento_proximo", 7)
+            ),
+            dias_pedido_parado=int(request.query_params.get("dias_pedido_parado", 7)),
+        )
+        selectors = VendasSelectors(filters=filters)
+
+        data = {
+            "kpis": {
+                "vendas": str(selectors.get_kpi_vendas()),
+                "ticket_medio": str(selectors.get_kpi_ticket_medio()),
+                "pedidos": selectors.get_kpi_pedidos(),
+                "clientes": selectors.get_kpi_clientes(),
+                "cancelados": selectors.get_kpi_cancelados(),
+                "a_receber": str(selectors.get_kpi_a_receber()),
+                "recebido": str(selectors.get_kpi_recebido()),
+            },
+            "alertas": {
+                "contas_vencidas": selectors.get_alertas_contas_vencidas(limit=5),
+                "contas_a_vencer": selectors.get_alertas_contas_a_vencer(limit=5),
+                "pedidos_parados": selectors.get_alertas_pedidos_parados(limit=5),
+            },
+            "pedidos_recentes": selectors.get_pedidos_recentes(limit=10),
+            "pagamentos_recentes": selectors.get_pagamentos_recentes(limit=10),
         }
         return Response(data, status=status.HTTP_200_OK)

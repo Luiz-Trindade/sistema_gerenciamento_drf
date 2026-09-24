@@ -404,3 +404,252 @@ class EstoqueSelectors:
             }
             for m in qs
         ]
+
+
+@dataclass
+class VendasFilters:
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    dias_vencimento_proximo: int = 7
+    dias_pedido_parado: int = 7
+
+
+class VendasSelectors:
+    """
+    Selectors para a página de entrada do módulo Vendas.
+
+    Fornece KPIs de topo (vendas, ticket médio, a receber, recebido),
+    listas de alertas acionáveis (contas vencidas, contas a vencer,
+    pedidos parados) e feed de atividades recentes.
+    """
+
+    def __init__(self, filters: Optional[VendasFilters] = None):
+        self.filters = filters or VendasFilters()
+        self._pedidos_qs = None
+        self._contas_qs = None
+
+    # ---------------------------------------------------------
+    # Querysets base
+    # ---------------------------------------------------------
+
+    @property
+    def pedidos_qs(self):
+        if self._pedidos_qs is None:
+            qs = Pedido.objects.select_related("cliente", "usuario")
+            if self.filters.start_date:
+                qs = qs.filter(criado_em__date__gte=self.filters.start_date)
+            if self.filters.end_date:
+                qs = qs.filter(criado_em__date__lte=self.filters.end_date)
+            self._pedidos_qs = qs
+        return self._pedidos_qs
+
+    @property
+    def contas_qs(self):
+        if self._contas_qs is None:
+            self._contas_qs = ContaReceber.objects.filter(pedido__in=self.pedidos_qs)
+        return self._contas_qs
+
+    # ---------------------------------------------------------
+    # Helpers
+    # ---------------------------------------------------------
+
+    @staticmethod
+    def _nome_cliente(pedido) -> Optional[str]:
+        """Retorna o nome do cliente do pedido, ou None se não houver."""
+        if not pedido.cliente_id:
+            return None
+        return str(pedido.cliente)
+
+    # ---------------------------------------------------------
+    # KPIs
+    # ---------------------------------------------------------
+
+    def get_kpi_vendas(self) -> Decimal:
+        """Soma do valor total de pedidos concluídos no período."""
+        result = self.pedidos_qs.filter(status=Pedido.Status.CONCLUIDO).aggregate(
+            total=Coalesce(Sum("valor_total"), Decimal("0.00"))
+        )
+        return result["total"]
+
+    def get_kpi_ticket_medio(self) -> Decimal:
+        """Valor total de vendas concluídas / quantidade de pedidos concluídos."""
+        concluidos = self.pedidos_qs.filter(status=Pedido.Status.CONCLUIDO)
+        total = concluidos.aggregate(
+            total=Coalesce(Sum("valor_total"), Decimal("0.00"))
+        )["total"]
+        count = concluidos.count()
+        return (total / count) if count > 0 else Decimal("0.00")
+
+    def get_kpi_pedidos(self) -> int:
+        """Total de pedidos no período."""
+        return self.pedidos_qs.count()
+
+    def get_kpi_clientes(self) -> int:
+        """Clientes distintos que fizeram pedidos no período."""
+        return (
+            self.pedidos_qs.filter(cliente__isnull=False)
+            .values("cliente")
+            .distinct()
+            .count()
+        )
+
+    def get_kpi_cancelados(self) -> int:
+        """Pedidos cancelados no período."""
+        return self.pedidos_qs.filter(status=Pedido.Status.CANCELADO).count()
+
+    def get_kpi_a_receber(self) -> Decimal:
+        """Soma dos valores pendentes (valor - valor_pago) das contas pendentes."""
+        result = self.contas_qs.filter(status=ContaReceber.Status.PENDENTE).aggregate(
+            total=Coalesce(
+                Sum(F("valor") - F("valor_pago")),
+                Decimal("0.00"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
+        )
+        return result["total"]
+
+    def get_kpi_recebido(self) -> Decimal:
+        """Soma dos valores efetivamente recebidos (contas pagas)."""
+        result = self.contas_qs.filter(status=ContaReceber.Status.PAGA).aggregate(
+            total=Coalesce(Sum("valor_pago"), Decimal("0.00"))
+        )
+        return result["total"]
+
+    # ---------------------------------------------------------
+    # Alertas acionáveis
+    # ---------------------------------------------------------
+
+    def get_alertas_contas_vencidas(self, limit: int = 5) -> list:
+        """
+        Contas pendentes com vencimento anterior a hoje, ordenadas
+        da mais atrasada para a menos atrasada.
+        """
+        hoje = timezone.localdate()
+        qs = (
+            self.contas_qs.filter(
+                status=ContaReceber.Status.PENDENTE,
+                vencimento__lt=hoje,
+            )
+            .select_related("pedido", "pedido__cliente")
+            .order_by("vencimento")[:limit]
+        )
+        return [
+            {
+                "id": c.id,
+                "pedido_id": c.pedido_id,
+                "cliente": self._nome_cliente(c.pedido),
+                "valor_restante": str(c.valor_restante),
+                "vencimento": c.vencimento.isoformat(),
+                "dias_atraso": (hoje - c.vencimento).days,
+                "numero_parcela": c.numero_parcela,
+                "total_parcelas": c.total_parcelas,
+            }
+            for c in qs
+        ]
+
+    def get_alertas_contas_a_vencer(self, limit: int = 5) -> list:
+        """
+        Contas pendentes com vencimento entre hoje e o limite
+        `dias_vencimento_proximo`, ordenadas por vencimento.
+        """
+        hoje = timezone.localdate()
+        limite = hoje + timedelta(days=self.filters.dias_vencimento_proximo)
+        qs = (
+            self.contas_qs.filter(
+                status=ContaReceber.Status.PENDENTE,
+                vencimento__gte=hoje,
+                vencimento__lte=limite,
+            )
+            .select_related("pedido", "pedido__cliente")
+            .order_by("vencimento")[:limit]
+        )
+        return [
+            {
+                "id": c.id,
+                "pedido_id": c.pedido_id,
+                "cliente": self._nome_cliente(c.pedido),
+                "valor_restante": str(c.valor_restante),
+                "vencimento": c.vencimento.isoformat(),
+                "dias_para_vencer": (c.vencimento - hoje).days,
+                "numero_parcela": c.numero_parcela,
+                "total_parcelas": c.total_parcelas,
+            }
+            for c in qs
+        ]
+
+    def get_alertas_pedidos_parados(self, limit: int = 5) -> list:
+        """
+        Pedidos em status CRIADO ou PROCESSANDO há mais de
+        `dias_pedido_parado` dias — candidatos a atenção.
+        """
+        corte = timezone.now() - timedelta(days=self.filters.dias_pedido_parado)
+        qs = self.pedidos_qs.filter(
+            status__in=[Pedido.Status.CRIADO, Pedido.Status.PROCESSANDO],
+            criado_em__lt=corte,
+        ).order_by("criado_em")[:limit]
+        return [
+            {
+                "id": p.id,
+                "cliente": self._nome_cliente(p),
+                "status": p.status,
+                "status_display": p.get_status_display(),
+                "valor_total": str(p.valor_total),
+                "criado_em": p.criado_em.isoformat(),
+                "dias_parado": (timezone.now() - p.criado_em).days,
+            }
+            for p in qs
+        ]
+
+    # ---------------------------------------------------------
+    # Atividades recentes
+    # ---------------------------------------------------------
+
+    def get_pedidos_recentes(self, limit: int = 10) -> list:
+        """
+        Últimos pedidos criados. Ignora o filtro de período —
+        é um feed do que está acontecendo agora.
+        """
+        qs = Pedido.objects.select_related("cliente", "usuario").order_by("-criado_em")[
+            :limit
+        ]
+        return [
+            {
+                "id": p.id,
+                "cliente": self._nome_cliente(p),
+                "status": p.status,
+                "status_display": p.get_status_display(),
+                "valor_total": str(p.valor_total),
+                "usuario": str(p.usuario) if p.usuario_id else None,
+                "criado_em": p.criado_em.isoformat(),
+            }
+            for p in qs
+        ]
+
+    def get_pagamentos_recentes(self, limit: int = 10) -> list:
+        """
+        Últimos pagamentos registrados (contas marcadas como pagas).
+        """
+        qs = (
+            ContaReceber.objects.filter(
+                status=ContaReceber.Status.PAGA,
+                pago_em__isnull=False,
+            )
+            .select_related("pedido", "pedido__cliente")
+            .order_by("-pago_em")[:limit]
+        )
+        return [
+            {
+                "id": c.id,
+                "pedido_id": c.pedido_id,
+                "cliente": self._nome_cliente(c.pedido),
+                "valor_pago": str(c.valor_pago),
+                "meio_pagamento": c.meio_pagamento,
+                "meio_pagamento_display": (
+                    c.get_meio_pagamento_display() if c.meio_pagamento else None
+                ),
+                "numero_parcela": c.numero_parcela,
+                "total_parcelas": c.total_parcelas,
+                "pago_em": c.pago_em.isoformat(),
+            }
+            for c in qs
+        ]
