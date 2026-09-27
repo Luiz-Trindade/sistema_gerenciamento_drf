@@ -30,6 +30,8 @@ share/python-wheels/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*.sqlite3
+*.sqlite3-journal
 # Pasta de mídia (uploads de usuários) não deve ir para o Git
 media/
 
