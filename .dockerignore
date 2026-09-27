@@ -105,3 +105,4 @@ pnpm-debug.log*
 .npm/
 .yarn/
 .pnp.*
+screenshots/
