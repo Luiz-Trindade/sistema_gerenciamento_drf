@@ -230,6 +230,15 @@ UNFOLD = {
     "SITE_HEADER": "Simples Gestão",
     "SITE_SUBHEADER": "Administração",
     "SITE_ICON": lambda request: static("img/favicon.png"),
+    # "SHOW_VIEW_ON_SITE": False,
+    "SITE_FAVICONS": [
+        {
+            "rel": "icon",
+            "sizes": "32x32",
+            "type": "image/png",
+            "href": lambda request: static("img/favicon.png"),
+        },
+    ],
     "LOGIN": {
         # Imagem de fundo para a tela de login
         "image": lambda request: static("img/favicon.png"),
