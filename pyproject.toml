@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "django-cachalot>=2.9.1",
     "django-cors-headers>=4.9.0",
+    "django-http-compression[brotli]>=1.4.0",
     "django-import-export>=4.4.1",
     "django-jazzmin>=3.0.5",
     "django-redis>=7.0.0",
