@@ -1,18 +1,8 @@
 services:
-    django:
-        image: ghcr.io/luiz-trindade/sistema_gerenciamento:latest
-        ports:
-            - "127.0.0.1:8005:8000"
-        volumes:
-            - ./media:/app/media
-        env_file: .env
-        depends_on:
-            simples_gestao_pgbouncer:
-                condition: service_healthy
-        restart: unless-stopped
-
-    simples_gestao_postgres:
+    sistema_gerenciamento_db:
         image: postgres:17-alpine
+        container_name: sistema_gerenciamento_db
+        restart: always
         command: ["-p", "5433"]
         environment:
             POSTGRES_DB: ${POSTGRES_DB}
@@ -20,7 +10,11 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             PGPORT: 5433
         volumes:
-            - simples_gestao_pgdata:/var/lib/postgresql/data
+            - ./postgres_data:/var/lib/postgresql/data
+        ports:
+            - "127.0.0.1:5433:5433"
+        networks:
+            - sistema_gerenciamento_network
         healthcheck:
             test:
                 [
@@ -28,25 +22,28 @@ services:
                     "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5433",
                 ]
             interval: 5s
-            timeout: 3s
+            timeout: 5s
             retries: 10
-        restart: unless-stopped
+            start_period: 10s
 
-    simples_gestao_pgbouncer:
+    sistema_gerenciamento_pgbouncer:
         image: edoburu/pgbouncer:latest
+        container_name: sistema_gerenciamento_pgbouncer
+        restart: always
+        depends_on:
+            sistema_gerenciamento_db:
+                condition: service_healthy
         environment:
-            DB_HOST: simples_gestao_postgres
-            DB_PORT: 5433
-            DB_USER: ${POSTGRES_USER}
-            DB_PASSWORD: ${POSTGRES_PASSWORD}
-            DB_NAME: ${POSTGRES_DB}
-            LISTEN_PORT: 6433
+            DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@sistema_gerenciamento_db:5433/${POSTGRES_DB}
             POOL_MODE: transaction
             DEFAULT_POOL_SIZE: 20
+            MAX_CLIENT_CONN: 200
+            MIN_POOL_SIZE: 5
+            LISTEN_ADDR: 0.0.0.0
+            LISTEN_PORT: 6433
             AUTH_TYPE: scram-sha-256
-        depends_on:
-            simples_gestao_postgres:
-                condition: service_healthy
+        networks:
+            - sistema_gerenciamento_network
         healthcheck:
             test:
                 [
@@ -56,11 +53,44 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-        restart: unless-stopped
 
-    simples_gestao_redis:
-        image: redis:7-alpine
-        restart: unless-stopped
+    sistema_gerenciamento_redis:
+        image: redis:7.4-alpine
+        container_name: sistema_gerenciamento_redis
+        restart: always
+        command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+        volumes:
+            - sistema_gerenciamento_redis_data:/data
+        networks:
+            - sistema_gerenciamento_network
+
+    sistema_gerenciamento_django:
+        image: ghcr.io/luiz-trindade/sistema_gerenciamento:latest
+        container_name: sistema_gerenciamento_django
+        restart: always
+        depends_on:
+            sistema_gerenciamento_db:
+                condition: service_healthy
+            sistema_gerenciamento_pgbouncer:
+                condition: service_healthy
+            sistema_gerenciamento_redis:
+                condition: service_started
+        env_file: .env
+        environment:
+            DB_HOST: sistema_gerenciamento_pgbouncer
+            DB_PORT: 6433
+        volumes:
+            - ./media:/app/media
+        ports:
+            - "127.0.0.1:8005:8000"
+        networks:
+            - sistema_gerenciamento_network
 
 volumes:
-    simples_gestao_pgdata:
+    sistema_gerenciamento_redis_data:
+        name: sistema_gerenciamento_redis_data
+
+networks:
+    sistema_gerenciamento_network:
+        name: sistema_gerenciamento_network
+        driver: bridge
