@@ -2,24 +2,65 @@ services:
     django:
         image: ghcr.io/luiz-trindade/sistema_gerenciamento:latest
         ports:
-            - "127.0.0.1:8005:8000" # Bind apenas no localhost para o Caddy proxyar com segurança
+            - "127.0.0.1:8005:8000"
         volumes:
-            - ./db.sqlite3:/app/db.sqlite3
-            - ./media:/app/media # Essencial em produção para não perder uploads
-        # env_file:
-        #     - .env # Garanta que este arquivo exista na VPS com DEBUG=False
+            - ./media:/app/media
+        env_file: .env
         depends_on:
-            - redis_cache
+            simples_gestao_pgbouncer:
+                condition: service_healthy
         restart: unless-stopped
-        logging:
-            driver: "json-file"
-            options:
-                max-size: "10m"
-                max-file: "3" # Evita encher o disco da VPS com logs
 
-    redis_cache:
-        image: redis:7-alpine
-        ports:
-            - "6380:6379" # Mantido conforme solicitado. (Dica: pode remover essa linha se ninguém fora do Docker precisar acessar o Redis)
-        command: redis-server --save 60 1 --loglevel warning # Otimização básica de persistência e logs
+    simples_gestao_postgres:
+        image: postgres:17-alpine
+        command: ["-p", "5433"]
+        environment:
+            POSTGRES_DB: ${POSTGRES_DB}
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+            PGPORT: 5433
+        volumes:
+            - simples_gestao_pgdata:/var/lib/postgresql/data
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p 5433",
+                ]
+            interval: 5s
+            timeout: 3s
+            retries: 10
         restart: unless-stopped
+
+    simples_gestao_pgbouncer:
+        image: edoburu/pgbouncer:latest
+        environment:
+            DB_HOST: simples_gestao_postgres
+            DB_PORT: 5433
+            DB_USER: ${POSTGRES_USER}
+            DB_PASSWORD: ${POSTGRES_PASSWORD}
+            DB_NAME: ${POSTGRES_DB}
+            LISTEN_PORT: 6433
+            POOL_MODE: transaction
+            DEFAULT_POOL_SIZE: 20
+            AUTH_TYPE: scram-sha-256
+        depends_on:
+            simples_gestao_postgres:
+                condition: service_healthy
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "PGPASSWORD=${POSTGRES_PASSWORD} psql -h 127.0.0.1 -p 6433 -U ${POSTGRES_USER} -d ${POSTGRES_DB} -tAc 'SELECT 1' >/dev/null",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        restart: unless-stopped
+
+    simples_gestao_redis:
+        image: redis:7-alpine
+        restart: unless-stopped
+
+volumes:
+    simples_gestao_pgdata:

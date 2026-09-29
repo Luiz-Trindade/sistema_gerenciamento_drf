@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 from datetime import timedelta
 from django.urls import reverse_lazy
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_http_compression",
+    "dj_snake",
     "corsheaders",
     "simple_history",
     "import_export",
@@ -122,6 +124,9 @@ WSGI_APPLICATION = "core.wsgi.application"
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 DATABASES = {
+    # ======================================================================
+    # SQLite (configuração antiga — mantida comentada para referência)
+    # ======================================================================
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
@@ -140,7 +145,44 @@ DATABASES = {
             # Tempo de espera (em segundos) para o banco ser liberado antes de dar erro.
             "timeout": 5,
         },
-    }
+    },
+    # ======================================================================
+    # PostgreSQL via PgBouncer (produção)
+    # ----------------------------------------------------------------------
+    # Fluxo:  Django ──► PgBouncer (6433) ──► PostgreSQL (5433)
+    #
+    # O Django NUNCA fala direto com o Postgres. Ele fala com o PgBouncer,
+    # que mantém um pool de conexões "quentes" com o banco real.
+    #
+    # Variáveis esperadas (definidas no .env):
+    #   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+    #   DB_HOST (default: simples_gestao_pgbouncer)
+    #   DB_PORT (default: 6433)
+    #
+    # Para migrações, aponte direto ao Postgres (NÃO via PgBouncer):
+    #   docker compose exec \
+    #     -e DB_HOST=simples_gestao_postgres -e DB_PORT=5433 \
+    #     django python manage.py migrate
+    # ======================================================================
+    # "default": {
+    #     "ENGINE": "django.db.backends.postgresql",
+    #     "NAME": os.environ["POSTGRES_DB"],
+    #     "USER": os.environ["POSTGRES_USER"],
+    #     "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+    #     "HOST": os.environ.get("DB_HOST", "simples_gestao_pgbouncer"),
+    #     "PORT": os.environ.get("DB_PORT", "6433"),
+    #     # ------------------------------------------------------------------
+    #     # OBRIGATÓRIO com PgBouncer em pool_mode = transaction
+    #     # ------------------------------------------------------------------
+    #     # O pooler gerencia o pool. Manter conexões persistentes no Django
+    #     # "segura" conexões do pool sem necessidade, anulando o ganho.
+    #     "CONN_MAX_AGE": 0,
+    #     # Server-side cursors exigem a mesma conexão durante toda a leitura.
+    #     # Em transaction pooling, a conexão pode mudar entre queries, gerando
+    #     # erros como "cursor does not exist". Desabilitar carrega o resultado
+    #     # na memória do processo.
+    #     "DISABLE_SERVER_SIDE_CURSORS": True,
+    # },
 }
 
 

@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dj-snake>=1.1.2",
     "django-cachalot>=2.9.1",
     "django-cors-headers>=4.9.0",
     "django-http-compression[brotli]>=1.4.0",
@@ -17,6 +18,7 @@ dependencies = [
     "djangorestframework-simplejwt>=5.5.1",
     "drf-spectacular>=0.30.0",
     "granian>=2.8.3",
+    "psycopg[binary]>=3.3.6",
     "redis>=8.1.0",
     "uvicorn>=0.53.0",
     "whitenoise>=6.12.0",

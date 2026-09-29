@@ -1,108 +1,285 @@
-# =========================
-# Controle de Versão e Docker
-# =========================
+# ==========================================================================
+# .dockerignore
+# Objetivo: enviar o MENOR contexto possível para o daemon do Docker,
+# mantendo tudo que é necessário para build (Dockerfile, requirements,
+# código-fonte, etc.).
+# ==========================================================================
+
+# --------------------------------------------------------------------------
+# Controle de versão (NÃO ignorar o Dockerfile!)
+# --------------------------------------------------------------------------
 .git/
 .gitignore
-.dockerignore
-Dockerfile*
-docker-compose*
+.gitattributes
+.gitmodules
+.git-blame-ignore-revs
+.github/
+.gitlab/
+.bitbucket/
 
-# =========================
-# Python e Ambientes Virtuais
-# =========================
+# --------------------------------------------------------------------------
+# Python: bytecode, caches, ambientes virtuais, builds
+# --------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
 *.pyo
+*.pyd
+*py.class
+
+# Ambientes virtuais (todas as variações comuns)
 .venv/
+.venv*/
 venv/
 env/
-.env_folder/
 ENV/
+.env_folder/
+virtualenv/
+pyvenv.cfg
+
+# Caches de ferramentas
 .cache/
+.pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.hypothesis/
+.tox/
 .nox/
-.venv*/
-pip-wheel-metadata/
-*.whl
+.hypothesis/
+.pytype/
+.dmypy.json
+dmypy.json
+.pyre/
+.monkeytype/
+ipython/
 
-# =========================
-# Django, Mídia e Banco de Dados Local
-# =========================
+# Artefatos de build Python
+build/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+MANIFEST
+pip-wheel-metadata/
+Pipfile.lock
+
+# --------------------------------------------------------------------------
+# Django / Banco local / Mídia / Estáticos
+# --------------------------------------------------------------------------
 db.sqlite3
 db.sqlite3-journal
 *.sqlite3
 *.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+
+# Mídia gerada em runtime (não deve ir pra imagem)
 media/
-# staticfiles/ (se você roda collectstatic dentro do docker, não envie os locais)
+mediafiles/
+
+# Estáticos coletados localmente (collectstatic roda no container/deploy)
 staticfiles/
+static_root/
+assets/
 
-# Documentação e arquivos de desenvolvimento
-docs/_build/
-*.md
-*.rst
-LICENSE*
-Makefile
-docker-compose*.yml
-docker-compose*.yaml
+# Overrides locais de settings
+local_settings.py
+settings_local.py
+*_local.py
 
-# Volumes locais mapeados no root do projeto (evita copiar pasta de DB inteira pro contêiner do Django)
+# Traduções não compiladas (mantenha os .mo se precisar)
+*.pot
+*.po
+locale/*/LC_MESSAGES/*.po
+
+# Celery / agendadores
+celerybeat-schedule
+celerybeat.pid
+celerybeat-schedule.*
+*.pid
+
+# Logs gerados localmente
+*.log
+*.log.*
+logs/
+
+# --------------------------------------------------------------------------
+# Volumes locais de banco de dados (evita copiar GBs pro build context)
+# --------------------------------------------------------------------------
 pgdata/
 postgres_data/
 db_data/
+mysql_data/
+mongo_data/
+redis_data/
+data/
+volumes/
 
-# =========================
-# Variáveis de Ambiente e Segredos
-# =========================
-# Se você injeta via docker-compose, não precisa copiar o arquivo de ambiente para dentro da imagem
+# --------------------------------------------------------------------------
+# Variáveis de ambiente e SEGREDOS (CRÍTICO — nunca vão pra imagem)
+# --------------------------------------------------------------------------
 .env
+.env.*
+!.env.example
+!.env.template
 *.env
-.env.local
+secrets/
+.secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+credentials.json
+service-account*.json
+terraform.tfstate*
+.terraform/
+*.tfvars
 
-# =========================
-# Logs, Testes e Build
-# =========================
-*.log
-.pytest_cache/
+# --------------------------------------------------------------------------
+# Testes e Cobertura
+# --------------------------------------------------------------------------
 .coverage
-htmlcov/
-.tox/
-build/
-dist/
-*.egg-info/
-*.sqlite3
-*.sqlite3-journal
-*.bak
-*.tmp
-*.swp
-*.swo
-*~
-
-# Relatórios e artefatos de cobertura/testes
 .coverage.*
 coverage.xml
+htmlcov/
+coverage/
 test-results/
 reports/
+junit*.xml
 nosetests.xml
 pytestdebug.log
+.tests/
+tests/          # ⚠️ remova esta linha se quiser rodar testes na imagem
+                  # (ou mova a seção para o final com '!' para reincluir)
 
-# =========================
-# IDEs e Sistema Operacional
-# =========================
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
+# --------------------------------------------------------------------------
+# Documentação e arquivos “meta” do projeto
+# --------------------------------------------------------------------------
+docs/_build/
+docs/build/
+site/
+README*
+CHANGELOG*
+CONTRIBUTING*
+CODE_OF_CONDUCT*
+LICENSE*
+AUTHORS*
+Makefile
+.editorconfig
+.pre-commit-config.yaml
+.pre-commit-hooks.yaml
+.yamllint
+.markdownlint*
+.python-version
+.tool-versions
+.prettierrc*
+.eslintrc*
+stylelint.config.*
+.dockerignore
 
-# Ferramentas de frontend e gerenciadores de dependências
+# --------------------------------------------------------------------------
+# Frontend / Node
+# --------------------------------------------------------------------------
 node_modules/
+jspm_packages/
+bower_components/
+.npm/
+.yarn/
+.pnp.*
+.yarnrc.yml
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.npm/
-.yarn/
-.pnp.*
+.npmrc
+.webpack/
+.parcel-cache/
+.sass-cache/
+.webassets-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+coverage/        # (dup proposital com a seção de testes, ok)
+storybook-static/
 screenshots/
+
+# --------------------------------------------------------------------------
+# IDEs e editores
+# --------------------------------------------------------------------------
+.vscode/
+.idea/
+*.iml
+*.code-workspace
+.history/
+*.sublime-workspace
+*.sublime-project
+*.tmproj
+.project
+.classpath
+.settings/
+nbproject/
+*.swp
+*.swo
+*.swn
+*~
+
+# --------------------------------------------------------------------------
+# Sistemas operacionais (use ** para pegar em qualquer subpasta)
+# --------------------------------------------------------------------------
+**/.DS_Store
+.DS_Store
+**/.AppleDouble
+**/.LSOverride
+._*
+**/Thumbs.db
+**/ehthumbs.db
+**/Desktop.ini
+$RECYCLE.BIN/
+**/.Trash-*
+**/.directory
+**/.fuse_hidden*
+**/lost+found
+
+# --------------------------------------------------------------------------
+# Infra / orquestração
+# --------------------------------------------------------------------------
+.terraform/
+.ansible/
+k8s/
+kubernetes/
+helm/
+charts/
+charts-*/
+docker-compose*.yml
+docker-compose*.yaml
+# Dica: NÃO ignore o Dockerfile — o build precisa dele.
+
+# --------------------------------------------------------------------------
+# Backups e arquivos temporários
+# --------------------------------------------------------------------------
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.tmp
+*.temp
+*.crt.tmp
+backup_dados.json
+backup*.json
+backup*.sql
+dump*.sql
+*.tar
+*.tar.gz
+*.zip
