@@ -24,6 +24,7 @@ class Produto(models.Model):
 
     Attributes:
         nome: Nome utilizado para identificar o produto.
+        imagem: Imagem representativa do produto, armazenada no diretório "produtos/".
         descricao: Informações adicionais sobre o produto.
         preco: Preço unitário do produto.
         ativo: Indica se o produto está ativo no sistema.
@@ -35,6 +36,14 @@ class Produto(models.Model):
         verbose_name="nome",
         max_length=255,
     )
+
+    imagem = models.ImageField(
+        verbose_name="imagem",
+        upload_to="produtos/",
+        blank=True,
+        null=True,
+    )
+
     descricao = models.TextField(
         verbose_name="descrição",
         blank=True,
