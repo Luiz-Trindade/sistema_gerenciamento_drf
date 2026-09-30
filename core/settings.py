@@ -128,20 +128,20 @@ WSGI_APPLICATION = "core.wsgi.application"
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
     # "default": {
-    #     "ENGINE": "django.db.backends.postgresql",
-    #     "NAME": os.environ["POSTGRES_DB"],
-    #     "USER": os.environ["POSTGRES_USER"],
-    #     "PASSWORD": os.environ["POSTGRES_PASSWORD"],
-    #     "HOST": os.environ.get("DB_HOST", "simples_gestao_pgbouncer"),
-    #     "PORT": os.environ.get("DB_PORT", "6433"),
-    #     "CONN_MAX_AGE": 0,
-    #     "DISABLE_SERVER_SIDE_CURSORS": True,
-    # }
+    #     "ENGINE": "django.db.backends.sqlite3",
+    #     "NAME": BASE_DIR / "db.sqlite3",
+    # },
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["POSTGRES_DB"],
+        "USER": os.environ["POSTGRES_USER"],
+        "PASSWORD": os.environ["POSTGRES_PASSWORD"],
+        "HOST": os.environ.get("DB_HOST", "simples_gestao_pgbouncer"),
+        "PORT": os.environ.get("DB_PORT", "6433"),
+        "CONN_MAX_AGE": 0,
+        "DISABLE_SERVER_SIDE_CURSORS": True,
+    }
 }
 
 
