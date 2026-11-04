@@ -1,3 +1,4 @@
+# clientes/admin.py
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
@@ -17,10 +18,14 @@ class ClienteResource(resources.ModelResource):
         fields = (
             "id",
             "nome",
-            "email",
-            "telefone",
             "cpf",
             "cnpj",
+            "telefone_1",
+            "telefone_2",
+            "telefone_3",
+            "email_1",
+            "email_2",
+            "email_3",
             "ativo",
             "criado_em",
             "atualizado_em",
@@ -42,8 +47,8 @@ class ClienteAdmin(ModelAdmin, ImportExportModelAdmin):
     # Campos exibidos na tabela de listagem
     list_display = [
         "nome",
-        "email",
-        "telefone",
+        "email_1",
+        "telefone_1",
         "cpf",
         "cnpj",
         "ativo",
@@ -51,7 +56,7 @@ class ClienteAdmin(ModelAdmin, ImportExportModelAdmin):
     ]
 
     # Campos que contêm link para abrir os detalhes/edição
-    list_display_links = ["nome", "email"]
+    list_display_links = ["nome", "email_1"]
 
     # Edição rápida diretamente pela tabela
     list_editable = ["ativo"]
@@ -59,8 +64,18 @@ class ClienteAdmin(ModelAdmin, ImportExportModelAdmin):
     # Barra lateral de filtros
     list_filter = ["ativo", "criado_em"]
 
-    # Busca por texto (pesquisa em vários campos)
-    search_fields = ["nome", "email", "cpf", "cnpj", "telefone"]
+    # Busca por texto (pesquisa nos múltiplos contatos e documentos)
+    search_fields = [
+        "nome",
+        "cpf",
+        "cnpj",
+        "email_1",
+        "email_2",
+        "email_3",
+        "telefone_1",
+        "telefone_2",
+        "telefone_3",
+    ]
 
     # Campos que não podem ser editados manualmente
     readonly_fields = ["criado_em", "atualizado_em"]
@@ -71,12 +86,24 @@ class ClienteAdmin(ModelAdmin, ImportExportModelAdmin):
     # Organização visual dos campos no formulário de cadastro/edição
     fieldsets = (
         (
-            "Informações Pessoais / Contato",
+            "Informações Principais",
             {
                 "fields": (
-                    ("nome", "email"),
-                    ("telefone", "ativo"),
+                    ("nome", "ativo"),
+                    ("descricao",),
                 ),
+            },
+        ),
+        (
+            "Telefones de Contato",
+            {
+                "fields": (("telefone_1", "telefone_2", "telefone_3"),),
+            },
+        ),
+        (
+            "E-mails de Contato",
+            {
+                "fields": (("email_1", "email_2", "email_3"),),
             },
         ),
         (
