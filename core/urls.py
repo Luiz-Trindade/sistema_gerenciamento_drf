@@ -15,6 +15,7 @@ from usuarios.views import UsuarioViewSet
 from estoque.views import ProdutoViewSet, MovimentacaoViewSet
 from vendas.views import PedidoViewSet, ContaReceberViewSet
 from clientes.views import ClienteViewSet
+from relatorios_ia.views import relatorio_ia_view
 
 # Router gera o API Root e os endpoints do ModelViewSet
 router = DefaultRouter()
@@ -28,6 +29,8 @@ router.register(r"clientes", ClienteViewSet, basename="clientes")
 api_urlpatterns = [
     # Router
     path("", include(router.urls)),
+    # IA
+    path("relatorios-ia/", relatorio_ia_view, name="relatorios-ia"),
     # JWT
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
