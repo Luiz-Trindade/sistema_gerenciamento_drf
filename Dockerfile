@@ -27,4 +27,4 @@ COPY . .
 # CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && granian --interface asgi core.asgi:application --host 0.0.0.0 --port 8000 --workers $(nproc)"]
 
 # gunicorn
-CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers $(nproc)"]
+CMD ["sh", "-c", "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers $(nproc) --timeout 120"]

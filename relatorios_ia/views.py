@@ -4,7 +4,7 @@ import os
 from drf_spectacular.utils import extend_schema
 from langchain_core.messages import HumanMessage, ToolMessage
 from langchain_core.tools import tool
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -166,7 +166,7 @@ class RelatorioIAResponseSerializer(serializers.Serializer):
 
 @extend_schema(
     summary="Consultar Relatório com IA",
-    description="Interface inteligente que executa e combina múltiplas ferramentas do ERP conforme a pergunta do usuário.",
+    description="Interface inteligente que executa e combina múltiplas ferramentas do ERP via Maritaca AI (Sabiá-3).",
     request=RelatorioIARequestSerializer,
     responses={200: RelatorioIAResponseSerializer},
 )
@@ -178,10 +178,22 @@ def relatorio_ia_view(request):
     mensagem = serializer.validated_data.get("mensagem", "").strip()
 
     try:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
-            api_key=os.getenv("GEMINI_API_KEY"),
+        api_key = os.getenv("MARITACA_API_KEY")
+        if not api_key:
+            return Response(
+                {"detail": "Chave MARITACA_API_KEY não configurada no ambiente."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # Configuração do ChatOpenAI apontando para o endpoint da Maritaca AI
+        llm = ChatOpenAI(
+            model="sabiazinho-4",
+            api_key=api_key,
+            base_url="https://chat.maritaca.ai/api",
             temperature=0.2,
+            request_timeout=30.0,
+            max_retries=5,
+            model_kwargs={"extra_body": {"service_tier": "flex"}},
         )
 
         llm_with_tools = llm.bind_tools(TOOLS)
@@ -198,7 +210,7 @@ def relatorio_ia_view(request):
             )
         ]
 
-        # Loop do agente (até 5 iterações para permitir combinação sequencial de ferramentas)
+        # Loop do agente (até 5 iterações para combinação de ferramentas)
         for _ in range(5):
             response_msg = llm_with_tools.invoke(messages)
             messages.append(response_msg)
