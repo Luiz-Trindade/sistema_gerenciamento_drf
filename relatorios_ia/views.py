@@ -187,13 +187,13 @@ def relatorio_ia_view(request):
 
         # Configuração do ChatOpenAI apontando para o endpoint da Maritaca AI
         llm = ChatOpenAI(
-            model="sabiazinho-4",
+            model="s5-nano",
             api_key=api_key,
             base_url="https://chat.maritaca.ai/api",
-            temperature=0.2,
             request_timeout=30.0,
             max_retries=5,
-            model_kwargs={"extra_body": {"service_tier": "flex"}},
+            extra_body={"service_tier": "flex"},
+            reasoning_effort="none",
         )
 
         llm_with_tools = llm.bind_tools(TOOLS)
